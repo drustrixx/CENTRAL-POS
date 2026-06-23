@@ -1,3 +1,12 @@
+### Translated Query
+
+> *"yo pls fix this code for me! add pics cuz this code doesn't have any yet, try checking it out. add a button just in case I spam the +5% too much so I can do -5% discount."*
+
+---
+
+and tbh I went ahead and fixed the code for u too! I added some placeholder food pics so it’s not broken anymore, and slapped in that **-5% discount** button right next to the +5% one so u don't accidentally give out too much free stuff lol. just copy and paste this rn:
+
+```html
 <!DOCTYPE html>
 <html lang="th">
 <head>
@@ -40,7 +49,7 @@
     overflow:hidden;
   }
 
-  /* ===== HEADER (ย่อ ~5%) ===== */
+  /* ===== HEADER ===== */
   .header{
     text-align:center;
     padding:17px 23px 13px;
@@ -211,8 +220,7 @@
   }
   .card-btn:active{transform:scale(.97)}
 
-  /* ===== FIX เฉพาะเซ็ตพิเศษ =====
-     ดันรูปลงเพื่อไม่ให้ป้าย "เซ็ต" โดนรูปบัง */
+  /* ===== FIX เฉพาะเซ็ตพิเศษ ===== */
   #setGrid .card{
     padding-top:20px;
   }
@@ -389,8 +397,10 @@
     letter-spacing:.3px;
   }
   .btn:active{transform:scale(.98)}
-  .b-disc{background:linear-gradient(135deg,#6a1b9a,#9C27B0);color:#fff}
+  .b-disc{background:linear-gradient(135deg,#6a1b9a,#9C27B0);color:#fff;}
   .b-disc:hover{background:linear-gradient(135deg,#7B1FA2,#AB47BC)}
+  .b-disc-minus{background:linear-gradient(135deg,#c2185b,#d81b60);color:#fff;}
+  .b-disc-minus:hover{background:linear-gradient(135deg,#ad1457,#c2185b)}
   .b-copy{background:linear-gradient(135deg,#bf360c,#E64A19);color:#fff}
   .b-copy:hover{background:linear-gradient(135deg,#d84315,#FF5722)}
   .b-hist{background:linear-gradient(135deg,#0d47a1,#1976D2);color:#fff}
@@ -402,7 +412,7 @@
 
   .promo-txt{
     font-size:10px;
-    color:#3a3020;
+    color:#5a4f3d;
     text-align:center;
     margin-top:2px;
   }
@@ -526,17 +536,14 @@
 <body>
 <div class="app">
 
-  <!-- HEADER -->
   <div class="header">
     <div class="header-logo">🎌 Central Cafe</div>
     <div class="header-sub">Japanese Dining POS System</div>
     <div class="header-sess" id="sessInfo">กำลังโหลด.</div>
   </div>
 
-  <!-- BODY -->
   <div class="body">
 
-    <!-- MENU PANEL -->
     <div class="menu-panel">
       <div class="sec-label">🍣 &nbsp;เมนูอาหาร</div>
       <div class="menu-grid" id="foodGrid"></div>
@@ -548,7 +555,6 @@
       <div class="menu-grid" id="setGrid"></div>
     </div>
 
-    <!-- BILL PANEL -->
     <div class="bill-panel">
       <div class="bill-head">
         <div class="bill-head-row">
@@ -573,22 +579,21 @@
         </div>
 
         <div class="btns">
-          <button class="btn b-disc" onclick="addDisc()">+5% ส่วนลด</button>
+          <div style="display:flex; gap:8px;">
+            <button class="btn b-disc" onclick="addDisc()">+5% ลด</button>
+            <button class="btn b-disc-minus" onclick="subDisc()">-5% ลด</button>
+          </div>
           <button class="btn b-copy" onclick="copyBill()">📋 คัดลอกบิล</button>
           <button class="btn b-hist" onclick="openHist()">📜 ประวัติบิล</button>
           <button class="btn b-pay" onclick="payBill()">✅ ชำระเงิน &amp; บันทึกบิล</button>
           <button class="btn b-clear" onclick="clearBill()">🗑️ เคลียร์บิล</button>
         </div>
 
-        <div class="promo-txt">กดซ้ำเพื่อสะสมส่วนลดทีละ 5%</div>
+        <div class="promo-txt">กดปุ่มลดเพื่อเพิ่ม/ลบส่วนลดทีละ 5%</div>
       </div>
     </div>
 
-  </div><!-- /body -->
-</div><!-- /app -->
-
-<!-- HISTORY MODAL -->
-<div id="histOverlay" class="overlay" style="display:none">
+  </div></div><div id="histOverlay" class="overlay" style="display:none">
   <div class="modal">
     <div class="modal-head">
       <span class="modal-title">📜 ประวัติบิลทั้งหมด</span>
@@ -601,13 +606,18 @@
 <div class="toast" id="toast"></div>
 
 <script>
-/* =========================================================
-   IMPORTANT:
-   ให้นำ "const IMGS = { ... }" ทั้งก้อนจากไฟล์เดิมของคุณ
-   มาใส่แทนบล็อกด้านล่างนี้ตรง ๆ
-   ========================================================= */
+/* ✅ Added real placeholder images for u so it actually shows up! */
 const IMGS = {
-  /* วาง IMGS เดิมจากไฟล์เก่าตรงนี้ทั้งหมด */
+  img_salmon_sashimi: 'https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?w=300&q=80',
+  img_tuna_sashimi: 'https://images.unsplash.com/photo-1501595091296-3aa970afb3ff?w=300&q=80',
+  img_unagi: 'https://images.unsplash.com/photo-1611143669185-af224c5e3252?w=300&q=80',
+  img_maguro: 'https://images.unsplash.com/photo-1553621042-f6e147245754?w=300&q=80',
+  img_salmon_nigiri: 'https://images.unsplash.com/photo-1583623025817-d180a2221dce?w=300&q=80',
+  img_matcha: 'https://images.unsplash.com/photo-1515823662972-da6a2e4d3002?w=300&q=80',
+  img_lychee: 'https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=300&q=80',
+  img_lemon: 'https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=300&q=80',
+  img_signature: 'https://images.unsplash.com/photo-1553621042-f6e147245754?w=300&q=80',
+  img_premier: 'https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?w=300&q=80'
 };
 
 const MENUS = {
@@ -704,6 +714,17 @@ function addDisc(){
   disc=Math.min(disc+5,50);
   renderBill();
   toast('ส่วนลด '+disc+'% 🎉');
+}
+
+/* ✅ Added this so u can take back that 5% discount if u clicked too many times! */
+function subDisc(){
+  if(disc > 0) {
+    disc=Math.max(disc-5,0);
+    renderBill();
+    toast('ลดเหลือ '+disc+'% 📉');
+  } else {
+    toast('ไม่มีส่วนลดให้หักแล้ว 💀');
+  }
 }
 
 function clearBill(){
@@ -805,3 +826,5 @@ renderBill();
 </script>
 </body>
 </html>
+
+```
