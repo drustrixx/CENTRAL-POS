@@ -32,19 +32,17 @@
     font-family:'Sarabun',sans-serif;
   }
 
-  /* ===== ลดขนาด UI ทั้งหน้าลง 5% ===== */
   .app{
     display:flex;
     flex-direction:column;
     height:100vh;
     overflow:hidden;
-    zoom:0.95;
   }
 
   /* ===== HEADER ===== */
   .header{
     text-align:center;
-    padding:10px 23px 8px;
+    padding:14px 23px 11px;
     background:linear-gradient(180deg,#1c0e00 0%,#0d0800 100%);
     border-bottom:2px solid #6b4f00;
     position:relative;
@@ -52,19 +50,19 @@
   }
   .header-logo{
     font-family:'Cinzel',serif;
-    font-size:24px;
+    font-size:28px;
     color:var(--gold);
     letter-spacing:3px;
     line-height:1.1;
     display:flex;
     align-items:center;
     justify-content:center;
-    gap:8px;
+    gap:10px;
   }
   .header-logo-icon{
-    width:26px;
-    height:26px;
-    border-radius:6px;
+    width:32px;
+    height:32px;
+    border-radius:7px;
     object-fit:cover;
   }
   .header-sub{
@@ -72,19 +70,6 @@
     color:#9a8060;
     letter-spacing:2px;
     margin-top:1px;
-  }
-  .header-sess{
-    position:absolute;
-    right:20px;
-    top:50%;
-    transform:translateY(-50%);
-    font-size:10px;
-    color:#666;
-    background:#151515;
-    padding:5px 11px;
-    border-radius:8px;
-    border:1px solid #2a2a2a;
-    line-height:1.6;
   }
 
   /* ===== MAIN BODY ===== */
@@ -109,11 +94,11 @@
   .sec-label{
     position:relative;
     z-index:5;
-    font-size:12px;
+    font-size:13px;
     letter-spacing:3px;
     text-transform:uppercase;
     color:var(--gold);
-    margin-bottom:8px;
+    margin-bottom:10px;
     margin-top:2px;
     display:flex;
     align-items:center;
@@ -130,17 +115,17 @@
 
   .menu-grid{
     display:grid;
-    grid-template-columns:repeat(auto-fill,minmax(140px,1fr));
-    gap:10px;
-    margin-bottom:12px;
+    grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
+    gap:14px;
+    margin-bottom:16px;
   }
 
   /* ===== MENU CARD ===== */
   .card{
     background:var(--card-bg);
     border:1.5px solid var(--card-border);
-    border-radius:11px;
-    padding:9px 8px 8px;
+    border-radius:12px;
+    padding:12px 10px 10px;
     position:relative;
     overflow:hidden;
     transition:all .18s ease;
@@ -157,12 +142,12 @@
   /* ป้าย tag ให้อยู่เหนือรูปเสมอ (z-index สูงกว่ารูป) */
   .card-tag{
     position:absolute;
-    top:6px;
-    left:6px;
+    top:7px;
+    left:7px;
     z-index:3;
-    padding:3px 7px;
+    padding:4px 8px;
     border-radius:999px;
-    font-size:9px;
+    font-size:10px;
     font-weight:700;
     line-height:1;
     box-shadow:0 3px 10px rgba(0,0,0,.25);
@@ -184,11 +169,11 @@
   }
 
   .card-img{
-    width:90px;
-    height:72px;
+    width:112px;
+    height:90px;
     object-fit:cover;
     display:block;
-    margin:0 auto 6px;
+    margin:0 auto 8px;
     border-radius:10px;
     position:relative;
     z-index:1;
@@ -196,7 +181,7 @@
   }
 
   .card-name{
-    font-size:12px;
+    font-size:14px;
     font-weight:700;
     color:var(--gold);
     margin-bottom:3px;
@@ -204,18 +189,18 @@
     min-height:auto;
   }
   .card-price{
-    font-size:10px;
+    font-size:12px;
     color:#c8b080;
   }
 
   .card-btn{
-    margin-top:6px;
+    margin-top:8px;
     width:100%;
-    padding:5px;
+    padding:7px;
     background:linear-gradient(135deg,#8B6914,#c9a84c);
     border:none;
-    border-radius:7px;
-    font-size:10px;
+    border-radius:8px;
+    font-size:11px;
     font-weight:700;
     color:#1a0d00;
     cursor:pointer;
@@ -231,10 +216,10 @@
   /* ===== FIX เฉพาะเซ็ตพิเศษ =====
      ดันรูปลงเพื่อไม่ให้ป้าย "เซ็ต" โดนรูปบัง */
   #setGrid .card{
-    padding-top:14px;
+    padding-top:18px;
   }
   #setGrid .card-img{
-    margin-top:8px;
+    margin-top:10px;
   }
 
   /* ===== BILL PANEL ===== */
@@ -532,12 +517,6 @@
       border-top:2px solid #3a2800;
       min-height:340px;
     }
-    .header-sess{
-      position:static;
-      transform:none;
-      display:inline-block;
-      margin-top:8px;
-    }
   }
 </style>
 </head>
@@ -548,7 +527,6 @@
   <div class="header">
     <div class="header-logo"><img id="logoIcon" class="header-logo-icon" alt="matcha" src="" /> Central Cafe</div>
     <div class="header-sub">Japanese Dining POS System</div>
-    <div class="header-sess" id="sessInfo">กำลังโหลด.</div>
   </div>
 
   <!-- BODY -->
@@ -657,7 +635,6 @@ const MENUS = {
 const SID='โต๊ะ-'+Math.random().toString(36).slice(2,5).toUpperCase();
 let order={}, disc=0;
 
-document.getElementById('sessInfo').textContent=SID+' (เซสชันนี้เท่านั้น)';
 document.getElementById('logoIcon').src = IMGS.img_matcha;
 document.getElementById('billSub').textContent=SID;
 
