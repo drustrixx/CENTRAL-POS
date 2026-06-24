@@ -44,7 +44,7 @@
   /* ===== HEADER ===== */
   .header{
     text-align:center;
-    padding:17px 23px 13px;
+    padding:10px 23px 8px;
     background:linear-gradient(180deg,#1c0e00 0%,#0d0800 100%);
     border-bottom:2px solid #6b4f00;
     position:relative;
@@ -52,16 +52,26 @@
   }
   .header-logo{
     font-family:'Cinzel',serif;
-    font-size:30px;
+    font-size:24px;
     color:var(--gold);
     letter-spacing:3px;
     line-height:1.1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+  }
+  .header-logo-icon{
+    width:26px;
+    height:26px;
+    border-radius:6px;
+    object-fit:cover;
   }
   .header-sub{
-    font-size:12px;
+    font-size:11px;
     color:#9a8060;
     letter-spacing:2px;
-    margin-top:2px;
+    margin-top:1px;
   }
   .header-sess{
     position:absolute;
@@ -88,7 +98,7 @@
   .menu-panel{
     flex:1;
     overflow-y:auto;
-    padding:19px 23px;
+    padding:10px 18px;
     background:var(--dark2);
   }
   .menu-panel::-webkit-scrollbar{width:6px}
@@ -99,17 +109,17 @@
   .sec-label{
     position:relative;
     z-index:5;
-    font-size:13px;
+    font-size:12px;
     letter-spacing:3px;
     text-transform:uppercase;
     color:var(--gold);
-    margin-bottom:13px;
-    margin-top:4px;
+    margin-bottom:8px;
+    margin-top:2px;
     display:flex;
     align-items:center;
     gap:10px;
     background:var(--dark2);
-    padding:6px 4px;
+    padding:3px 4px;
   }
   .sec-label::after{
     content:'';
@@ -120,17 +130,17 @@
 
   .menu-grid{
     display:grid;
-    grid-template-columns:repeat(auto-fill,minmax(166px,1fr));
-    gap:15px;
-    margin-bottom:24px;
+    grid-template-columns:repeat(auto-fill,minmax(140px,1fr));
+    gap:10px;
+    margin-bottom:12px;
   }
 
   /* ===== MENU CARD ===== */
   .card{
     background:var(--card-bg);
     border:1.5px solid var(--card-border);
-    border-radius:13px;
-    padding:15px 11px 13px;
+    border-radius:11px;
+    padding:9px 8px 8px;
     position:relative;
     overflow:hidden;
     transition:all .18s ease;
@@ -147,12 +157,12 @@
   /* ป้าย tag ให้อยู่เหนือรูปเสมอ (z-index สูงกว่ารูป) */
   .card-tag{
     position:absolute;
-    top:8px;
-    left:8px;
+    top:6px;
+    left:6px;
     z-index:3;
-    padding:4px 9px;
+    padding:3px 7px;
     border-radius:999px;
-    font-size:10px;
+    font-size:9px;
     font-weight:700;
     line-height:1;
     box-shadow:0 3px 10px rgba(0,0,0,.25);
@@ -174,38 +184,38 @@
   }
 
   .card-img{
-    width:124px;
-    height:101px;
+    width:90px;
+    height:72px;
     object-fit:cover;
     display:block;
-    margin:0 auto 11px;
-    border-radius:12px;
+    margin:0 auto 6px;
+    border-radius:10px;
     position:relative;
     z-index:1;
     background:#1a1400;
   }
 
   .card-name{
-    font-size:13px;
+    font-size:12px;
     font-weight:700;
     color:var(--gold);
-    margin-bottom:5px;
+    margin-bottom:3px;
     line-height:1.2;
-    min-height:32px;
+    min-height:auto;
   }
   .card-price{
-    font-size:11px;
+    font-size:10px;
     color:#c8b080;
   }
 
   .card-btn{
-    margin-top:11px;
+    margin-top:6px;
     width:100%;
-    padding:7px;
+    padding:5px;
     background:linear-gradient(135deg,#8B6914,#c9a84c);
     border:none;
-    border-radius:8px;
-    font-size:11px;
+    border-radius:7px;
+    font-size:10px;
     font-weight:700;
     color:#1a0d00;
     cursor:pointer;
@@ -221,10 +231,10 @@
   /* ===== FIX เฉพาะเซ็ตพิเศษ =====
      ดันรูปลงเพื่อไม่ให้ป้าย "เซ็ต" โดนรูปบัง */
   #setGrid .card{
-    padding-top:20px;
+    padding-top:14px;
   }
   #setGrid .card-img{
-    margin-top:14px;
+    margin-top:8px;
   }
 
   /* ===== BILL PANEL ===== */
@@ -372,9 +382,10 @@
     line-height:1;
   }
   .total-cur{
-    font-size:12px;
-    color:#666;
-    margin-left:3px;
+    font-size:20px;
+    color:#4CAF50;
+    margin-right:2px;
+    font-weight:700;
   }
 
   .btns{
@@ -535,7 +546,7 @@
 
   <!-- HEADER -->
   <div class="header">
-    <div class="header-logo">🎌 Central Cafe</div>
+    <div class="header-logo"><img id="logoIcon" class="header-logo-icon" alt="matcha" src="" /> Central Cafe</div>
     <div class="header-sub">Japanese Dining POS System</div>
     <div class="header-sess" id="sessInfo">กำลังโหลด.</div>
   </div>
@@ -572,17 +583,17 @@
       <div class="bill-foot">
         <div class="summary-box">
           <div class="sum-row"><span class="sum-label">ส่วนลด</span><span class="sum-disc" id="discLabel">0%</span></div>
-          <div class="sum-row"><span class="sum-label">ราคาก่อนลด</span><span class="sum-sub" id="subVal">0 บาท</span></div>
+          <div class="sum-row"><span class="sum-label">ราคาก่อนลด</span><span class="sum-sub" id="subVal">$0</span></div>
           <div class="total-row">
             <span class="total-label">ยอดรวม</span>
-            <div><span class="total-num" id="totVal">0</span><span class="total-cur">บาท</span></div>
+            <div><span class="total-cur">$</span><span class="total-num" id="totVal">0</span></div>
           </div>
         </div>
 
         <div class="btns">
           <div style="display:flex; gap:8px;">
-            <button class="btn b-disc" style="flex:1" onclick="subDisc()">−5% ส่วนลด</button>
             <button class="btn b-disc" style="flex:1" onclick="addDisc()">+5% ส่วนลด</button>
+            <button class="btn b-disc" style="flex:1" onclick="subDisc()">−5% ส่วนลด</button>
           </div>
           <button class="btn b-copy" onclick="copyBill()">📋 คัดลอกบิล</button>
           <button class="btn b-hist" onclick="openHist()">📜 ประวัติบิล</button>
@@ -647,6 +658,7 @@ const SID='โต๊ะ-'+Math.random().toString(36).slice(2,5).toUpperCase();
 let order={}, disc=0;
 
 document.getElementById('sessInfo').textContent=SID+' (เซสชันนี้เท่านั้น)';
+document.getElementById('logoIcon').src = IMGS.img_matcha;
 document.getElementById('billSub').textContent=SID;
 
 function tagClass(t){
@@ -661,7 +673,7 @@ function renderMenus(){
         <span class="card-tag ${tagClass(m.tag)}">${m.tag}</span>
         <img class="card-img" src="${m.img}" alt="${m.name}">
         <div class="card-name">${m.name}</div>
-        <div class="card-price">${m.price.toLocaleString()} บาท</div>
+        <div class="card-price">$${m.price.toLocaleString()}</div>
         <button class="card-btn">เพิ่มรายการ</button>
       </div>
     `).join('');
@@ -699,7 +711,7 @@ function renderBill(){
             <span class="qn">${it.qty}</span>
             <button class="qb" onclick="changeQty('${id}',1)">+</button>
           </div>
-          <div class="brow-price">${(it.price*it.qty).toLocaleString()}฿</div>
+          <div class="brow-price">$${(it.price*it.qty).toLocaleString()}</div>
         </div>
       `;
     }).join('');
@@ -709,7 +721,7 @@ function renderBill(){
   const d = Math.round(sub*disc/100);
   const tot = sub-d;
 
-  document.getElementById('subVal').textContent = sub.toLocaleString()+' บาท';
+  document.getElementById('subVal').textContent = '$'+sub.toLocaleString();
   document.getElementById('totVal').textContent = tot.toLocaleString();
   document.getElementById('discLabel').textContent = disc+'%';
 }
@@ -743,7 +755,7 @@ function copyBill(){
   const sub=keys.reduce((s,id)=>s+order[id].price*order[id].qty,0);
   const tot=sub-Math.round(sub*disc/100);
   const lines=keys.map(id =>
-    `${order[id].name} x${order[id].qty}  =  ${(order[id].price*order[id].qty).toLocaleString()} บาท`
+    `${order[id].name} x${order[id].qty}  =  $${(order[id].price*order[id].qty).toLocaleString()}`
   ).join('\n');
 
   const txt=
@@ -754,7 +766,7 @@ function copyBill(){
 ${lines}
 ──────────────────
 ส่วนลด: ${disc}%
-ยอดรวม: ${tot.toLocaleString()} บาท`;
+ยอดรวม: $${tot.toLocaleString()}`;
 
   if(navigator.clipboard){
     navigator.clipboard.writeText(txt).then(()=>toast('คัดลอกบิลแล้ว ✓'));
@@ -787,7 +799,7 @@ function payBill(){
     localStorage.setItem('cf_hist',JSON.stringify(h));
   }catch(e){}
 
-  toast('💾 บันทึกบิลแล้ว '+tot.toLocaleString()+' บาท ✅',3000);
+  toast('💾 บันทึกบิลแล้ว $'+tot.toLocaleString()+' ✅',3000);
   order={};
   disc=0;
   renderBill();
@@ -805,7 +817,7 @@ function openHist(){
       <div class="hentry">
         <div class="htime">${e.time} · ${e.table} · ส่วนลด ${e.disc}%</div>
         <div class="hitems">${e.items}</div>
-        <div class="htotal">ยอดรวม: ${e.tot.toLocaleString()} บาท</div>
+        <div class="htotal">ยอดรวม: $${e.tot.toLocaleString()}</div>
       </div>
     `).join('')
     : '<div class="no-hist">ยังไม่มีประวัติบิล</div>';
