@@ -82,21 +82,23 @@
 </script>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: 'Prompt', sans-serif; background: #0a0805; color: #fff; min-height: 100vh; }
+html, body { height: 100%; overflow: hidden; }
+body { font-family: 'Prompt', sans-serif; background: #0a0805; color: #fff; }
 
 /* ══════════════════════════════════════
-   POS PAGE
+   POS PAGE — full viewport, no page scroll
 ══════════════════════════════════════ */
-#pos-page { display: flex; flex-direction: column; min-height: 100vh; }
+#pos-page { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
 
 .pos-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding: 12px 24px;
+  padding: 10px 24px;
   border-bottom: 1px solid #3d2e0e;
   background: #0c0800;
+  flex-shrink: 0;
 }
 .pos-header-brand {
   display: flex;
@@ -130,37 +132,37 @@ body { font-family: 'Prompt', sans-serif; background: #0a0805; color: #fff; min-
   text-transform: uppercase;
 }
 
-.pos-body { display: flex; flex: 1; }
+.pos-body { display: flex; flex: 1; min-height: 0; overflow: hidden; }
 
 /* MENU CATEGORIES */
 .menu-sections {
   flex: 1;
-  padding: 20px 24px 32px;
+  padding: 14px 20px 20px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 28px;
+  gap: 16px;
 }
 .menu-category-header {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 16px;
-  padding-bottom: 10px;
+  gap: 8px;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
   border-bottom: 1px solid #f1c40f22;
 }
-.menu-category-header .cat-icon { font-size: 24px; line-height: 1; }
+.menu-category-header .cat-icon { font-size: 18px; line-height: 1; }
 .menu-category-header h2 {
-  font-size: 20px;
+  font-size: 15px;
   font-weight: 700;
   color: #f1c40f;
-  letter-spacing: 1px;
+  letter-spacing: .8px;
   text-shadow: 0 0 20px rgba(241,196,15,.3);
 }
 .menu-category-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(185px, 1fr));
-  gap: 18px;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 12px;
 }
 .menu-card {
   background: linear-gradient(160deg, #161005 0%, #0e0b04 100%);
@@ -195,13 +197,13 @@ body { font-family: 'Prompt', sans-serif; background: #0a0805; color: #fff; min-
 /* Image area — transparent-friendly, object centered */
 .menu-card-img-wrap {
   width: 100%;
-  height: 160px;
+  height: 110px;
   background: radial-gradient(ellipse at center, #1e1508 0%, #0d0902 100%);
   overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 8px;
+  padding: 6px;
 }
 .menu-card-img-wrap img {
   width: 100%;
@@ -222,32 +224,35 @@ body { font-family: 'Prompt', sans-serif; background: #0a0805; color: #fff; min-
 }
 
 .menu-card-body {
-  padding: 10px 14px 6px;
+  padding: 7px 10px 4px;
   border-top: 1px solid #f1c40f18;
 }
 .menu-card-body h3 {
-  font-size: 13.5px;
+  font-size: 12px;
   font-weight: 600;
   color: #f1c40f;
-  margin-bottom: 3px;
+  margin-bottom: 2px;
   letter-spacing: .2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .menu-card-body p {
-  font-size: 12px;
+  font-size: 11px;
   color: #c8b896;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 .menu-card-btn {
   display: block;
-  width: calc(100% - 28px);
-  margin: 0 14px 14px;
-  padding: 9px 0;
+  width: calc(100% - 20px);
+  margin: 0 10px 10px;
+  padding: 7px 0;
   background: linear-gradient(135deg, #f1c40f, #d4a800);
   color: #0a0805;
   border: none;
-  border-radius: 8px;
+  border-radius: 7px;
   font-family: 'Prompt', sans-serif;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   cursor: pointer;
   transition: background .15s, box-shadow .15s;
