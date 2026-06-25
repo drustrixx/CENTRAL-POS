@@ -1227,18 +1227,28 @@ function applyAdminPermissions() {
   renderPositions();
 }
 
+/* ── Role hierarchy ── */
+const roleOrder = ['CEO','CO CEO','MANAGER','STAFF','PART TIME','VISITOR'];
+function roleRank(r) { const i = roleOrder.indexOf(r); return i === -1 ? 99 : i; }
+
 /* — STAFF — */
 function renderStaff() {
   const isTop = r => r === 'CEO' || r === 'CO CEO';
+  const myR   = myRole();
+  const myRank = roleRank(myR);
   const canEdit = canEditAdmin();
   document.getElementById('staffList').innerHTML = staffList.map((s, i) => {
     const initials = s.name.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
     const bc = roleBadgeClass[s.role] || 'badge-visitor';
     const ic = roleIcon[s.role] || '';
-    const actions = (!canEdit || isTop(s.role))
+    // Can only edit someone whose rank is strictly lower than mine
+    const canEditThis = canEdit && !isTop(s.role) && roleRank(s.role) > myRank;
+    // Roles available to assign = only roles strictly below my own rank
+    const allowedRoles = positions.filter(p => roleRank(p.name) > myRank);
+    const actions = !canEditThis
       ? `<span class="view-only-text">ดูอย่างเดียว</span>`
       : `<select class="staff-role-select" onchange="staffList[${i}].role=this.value;renderStaff()">
-           ${positions.map(p=>`<option${s.role===p.name?' selected':''}>${p.name}</option>`).join('')}
+           ${allowedRoles.map(p=>`<option${s.role===p.name?' selected':''}>${p.name}</option>`).join('')}
          </select>
          <button class="btn-save" onclick="saveStaff(${i})">บันทึก</button>
          <button class="btn-del" onclick="deleteStaff(${i})">ลบ</button>`;
@@ -1274,14 +1284,18 @@ function addStaff() {
 
 function saveStaff(i) {
   if (!canEditAdmin()) { showToast('ไม่มีสิทธิ์แก้ไข', true); return; }
-  addHistory('แก้ไขยศ: ' + staffList[i].name + ' → ' + staffList[i].role);
+  const s = staffList[i];
+  if (roleRank(s.role) <= roleRank(myRole())) { showToast('ไม่สามารถกำหนดยศที่สูงกว่าหรือเท่ากับตัวเองได้', true); renderStaff(); return; }
+  addHistory('แก้ไขยศ: ' + s.name + ' → ' + s.role);
   renderStaff();
   showToast('บันทึกแล้ว');
 }
 
 function deleteStaff(i) {
   if (!canEditAdmin()) { showToast('ไม่มีสิทธิ์ลบ', true); return; }
-  const name = staffList[i].name;
+  const s = staffList[i];
+  if (roleRank(s.role) <= roleRank(myRole())) { showToast('ไม่สามารถลบคนที่ยศสูงกว่าหรือเท่ากับตัวเองได้', true); return; }
+  const name = s.name;
   staffList.splice(i, 1);
   addHistory('ลบพนักงาน: ' + name);
   renderStaff();
