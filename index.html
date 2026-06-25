@@ -1302,6 +1302,9 @@ body.staff-no-admin .hdr-btn-admin {
       <button class="order-btn btn-discount-add" id="btnDiscountAdd" onclick="changeDiscount(5)">+5% Discount</button>
       <button class="order-btn btn-discount-remove" id="btnDiscountRemove" onclick="changeDiscount(-5)" style="display:none">-5% Discount</button>
       <button class="order-btn btn-send-order" onclick="sendOrder()">📤 ส่งออเดอร์</button>
+      <button class="order-btn" style="background:#2d1e06;border:1px solid #3d2e0e;color:#f1c40f;margin-top:4px;" onclick="openOrderQueue()">
+        🍽 รายการออเดอร์ <span id="totalQueueBadge2" style="background:#c0392b;color:#fff;border-radius:50%;padding:1px 6px;font-size:11px;font-weight:700;">0</span>
+      </button>
     </div>
   </div>
 </div>
@@ -1330,7 +1333,6 @@ body.staff-no-admin .hdr-btn-admin {
       <button class="admin-tab active" data-tab="staff" onclick="switchTab('staff',this)">&#x1F465; พนักงาน</button>
       <button class="admin-tab" data-tab="positions" onclick="switchTab('positions',this)">&#x1F4CB; ตำแหน่ง</button>
       <button class="admin-tab" data-tab="orderhistory" onclick="switchTab('orderhistory',this)">&#x1F9FE; ประวัติออเดอร์</button>
-      <button class="admin-tab" data-tab="history" onclick="switchTab('history',this)">&#x1F4D6; ประวัติ</button>
     </div>
 
     <!-- ── TAB: STAFF ── -->
@@ -1375,14 +1377,6 @@ body.staff-no-admin .hdr-btn-admin {
         <div class="history-empty">ยังไม่มีประวัติออเดอร์</div>
       </div>
     </div>
-
-    <!-- ── TAB: HISTORY ── -->
-    <div class="tab-panel" id="tab-history">
-      <div class="panel-section-title">✦ ประวัติการดำเนินการ</div>
-      <div id="historyContainer">
-        <div class="history-empty">ยังไม่มีประวัติการดำเนินการ</div>
-      </div>
-    </div>
   </div>
 </div>
 
@@ -1416,7 +1410,7 @@ body.staff-no-admin .hdr-btn-admin {
     </div>
     <div class="customer-modal-btns">
       <button class="btn-customer-cancel" onclick="closeCustomerModal()">ยกเลิก</button>
-      <button class="btn-customer-ok" onclick="confirmCustomerAndSend()">&#10003; ยืนยันส่งออเดอร์</button>
+      <button class="btn-customer-ok" onclick="confirmCustomerAndSend()">📤 ยืนยันและส่งออเดอร์</button>
     </div>
   </div>
 </div>
@@ -1454,7 +1448,7 @@ body.staff-no-admin .hdr-btn-admin {
 </div>
 
 <!-- ══ FLOATING ORDER QUEUE BUTTON ══ -->
-<button class="btn-order-queue" onclick="openOrderQueue()">
+<button class="btn-order-queue" onclick="openOrderQueue()" style="display:none;">
   &#127857; รายการออเดอร์
   <span class="queue-badge" id="totalQueueBadge">0</span>
 </button>
@@ -1606,12 +1600,7 @@ function buildMenu() {
   `).join('');
 }
 
-function addItem(name, price) {
-  if (!canUsePos()) { showToast('VISITOR ไม่สามารถสั่งอาหารได้', true); return; }
-  if (!order[name]) order[name] = { price, qty: 0 };
-  order[name].qty++;
-  renderBill();
-}
+// addItem defined below (near sendOrder)
 
 function removeItem(name) {
   if (!canUsePos()) return;
@@ -2147,28 +2136,14 @@ function confirmCustomerAndSend() {
   window._currentCustomer = name;
   closeCustomerModal();
 
-  if (_pendingSubmitOrder) {
-    // dispatch actual send
-    _doSendOrder(name);
-  } else if (_pendingItemName) {
-    // add item after setting customer
-    const iname = _pendingItemName;
-    const iprice = _pendingItemPrice;
-    _pendingItemName = null; _pendingItemPrice = null;
-    _addItemDirect(iname, iprice);
-  }
+  // Always dispatch actual send
+  _doSendOrder(name);
 }
 
 /* Called by menu card button */
 function addItem(name, price) {
   if (!canUsePos()) { showToast('VISITOR ไม่สามารถสั่งอาหารได้', true); return; }
-  // If no customer set yet, ask first
-  if (!window._currentCustomer) {
-    _pendingItemName = name;
-    _pendingItemPrice = price;
-    openCustomerModal(false);
-    return;
-  }
+  // Add item directly without asking for customer name yet
   _addItemDirect(name, price);
 }
 
@@ -2271,6 +2246,8 @@ function switchQueueTab(tab, btn) {
 function updateQueueBadge() {
   const total = orderQueue.filter(o => o.status !== 'done').length;
   document.getElementById('totalQueueBadge').textContent = total;
+  const b2 = document.getElementById('totalQueueBadge2');
+  if (b2) b2.textContent = total;
   const pending = orderQueue.filter(o => o.status === 'pending').length;
   const cooking = orderQueue.filter(o => o.status === 'cooking').length;
   const ready = orderQueue.filter(o => o.status === 'ready').length;
