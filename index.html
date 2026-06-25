@@ -82,7 +82,7 @@
 </script>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: 'Prompt', sans-serif; background: #0a0a0a; color: #fff; min-height: 100vh; }
+body { font-family: 'Prompt', sans-serif; background: #0a0805; color: #fff; min-height: 100vh; }
 
 /* ══════════════════════════════════════
    POS PAGE
@@ -90,65 +90,150 @@ body { font-family: 'Prompt', sans-serif; background: #0a0a0a; color: #fff; min-
 #pos-page { display: flex; flex-direction: column; min-height: 100vh; }
 
 .pos-header {
-  text-align: center;
-  padding: 28px 0 16px;
-  border-bottom: 1px solid #222;
-  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 24px;
+  border-bottom: 1px solid #3d2e0e;
+  background: #0c0800;
 }
-.pos-header h1 {
+.pos-header-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.pos-header-crown {
+  font-size: 22px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.pos-header-titles { min-width: 0; }
+.pos-header-titles h1 {
   font-family: 'Cinzel', serif;
-  font-size: 32px;
+  font-size: 22px;
   font-weight: 700;
-  color: #f0c060;
+  color: #d4af37;
   letter-spacing: 2px;
+  text-transform: uppercase;
+  line-height: 1.2;
 }
-.pos-header p { font-size: 13px; color: #888; margin-top: 4px; }
+.pos-header-titles p {
+  font-size: 10px;
+  color: #8a7450;
+  margin-top: 2px;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+}
 
 .pos-body { display: flex; flex: 1; }
 
-/* MENU GRID */
-.menu-grid {
+/* MENU CATEGORIES */
+.menu-sections {
   flex: 1;
-  padding: 24px;
+  padding: 20px 24px 32px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+.menu-category-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.menu-category-header .cat-icon { font-size: 22px; line-height: 1; }
+.menu-category-header h2 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #f1c40f;
+  letter-spacing: .5px;
+}
+.menu-category-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(165px, 1fr));
   gap: 16px;
-  align-content: start;
 }
 .menu-card {
-  background: #141414;
-  border: 1px solid #2a2a2a;
-  border-radius: 12px;
+  background: #0a0805;
+  border: 1px solid #f1c40f55;
+  border-radius: 10px;
   overflow: hidden;
-  cursor: pointer;
+  position: relative;
   transition: border-color .2s;
 }
-.menu-card:hover { border-color: #c8962c; }
-.menu-card img { width: 100%; height: 120px; object-fit: cover; display: block; background: #1e1e1e; }
+.menu-card:hover { border-color: #f1c40f; }
+.menu-card-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 2;
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .3px;
+}
+.badge-food { background: #c0392b; color: #fff; }
+.badge-drink { background: #3498db; color: #fff; }
+.badge-set { background: #8e44ad; color: #fff; }
+.menu-card-img-wrap {
+  width: 100%;
+  height: 100px;
+  background: #141008;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.menu-card-img-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+  filter: contrast(1.06) saturate(1.08) brightness(1.02);
+}
+.menu-card-img-wrap img.img-fit-contain {
+  object-fit: contain;
+  padding: 6px 8px;
+  transform: translateZ(0) scale(0.82);
+  filter: contrast(1.08) saturate(1.1) brightness(1.03);
+}
 .menu-card-body { padding: 10px 12px 6px; }
-.menu-card-body h3 { font-size: 13px; font-weight: 500; color: #f0c060; margin-bottom: 3px; }
-.menu-card-body p { font-size: 12px; color: #aaa; margin-bottom: 8px; }
+.menu-card-body h3 { font-size: 13px; font-weight: 600; color: #f1c40f; margin-bottom: 3px; }
+.menu-card-body p { font-size: 12px; color: #e8dcc8; margin-bottom: 8px; }
 .menu-card-btn {
   display: block;
   width: calc(100% - 24px);
   margin: 0 12px 12px;
   padding: 8px 0;
-  background: #c8962c;
-  color: #1a0e00;
+  background: #f1c40f;
+  color: #0a0805;
   border: none;
   border-radius: 6px;
   font-family: 'Prompt', sans-serif;
   font-size: 12px;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
   transition: background .15s;
 }
-.menu-card-btn:hover { background: #e0aa35; }
+.menu-card-btn:hover { background: #f5d042; }
 
-/* VISITOR lock — dim interactive elements */
-body.visitor-mode .menu-card { opacity: .5; pointer-events: none; }
-body.visitor-mode .order-btn { opacity: .4; pointer-events: none; }
-body.visitor-mode .btn-remove-item { pointer-events: none; }
+/* VISITOR lock — view only, no interactions */
+body.visitor-mode .menu-card-btn,
+body.visitor-mode .order-btn,
+body.visitor-mode .btn-remove-item,
+body.visitor-mode .hdr-btn-admin {
+  opacity: .45;
+  pointer-events: none;
+  cursor: not-allowed;
+}
+body.visitor-mode .menu-card { cursor: default; }
 .visitor-banner {
   display: none;
   background: #1a0a00;
@@ -164,8 +249,8 @@ body.visitor-mode .visitor-banner { display: block; }
 
 .order-panel {
   width: 290px;
-  background: #0d0d0d;
-  border-left: 1px solid #222;
+  background: #0a0805;
+  border-left: 1px solid #3d2e0e;
   padding: 20px 18px;
   display: flex;
   flex-direction: column;
@@ -174,9 +259,9 @@ body.visitor-mode .visitor-banner { display: block; }
 .order-panel h2 {
   font-size: 16px;
   font-weight: 600;
-  color: #f0c060;
+  color: #f1c40f;
   padding-bottom: 12px;
-  border-bottom: 1px solid #2a2a2a;
+  border-bottom: 1px solid #3d2e0e;
 }
 .discount-line { font-size: 12px; color: #888; }
 .order-items { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 7px; min-height: 60px; }
@@ -188,7 +273,7 @@ body.visitor-mode .visitor-banner { display: block; }
   color: #ccc;
 }
 .order-item-right { display: flex; align-items: center; gap: 6px; }
-.order-item span.price { color: #f0c060; }
+.order-item span.price { color: #f1c40f; }
 .btn-remove-item {
   background: none;
   border: none;
@@ -202,7 +287,7 @@ body.visitor-mode .visitor-banner { display: block; }
 .order-total {
   font-size: 28px;
   font-weight: 600;
-  color: #4caf50;
+  color: #27ae60;
   text-align: center;
   padding: 6px 0;
 }
@@ -218,11 +303,15 @@ body.visitor-mode .visitor-banner { display: block; }
   transition: opacity .15s;
 }
 .order-btn:hover { opacity: .85; }
-.btn-discount-add { background: #7c3aed; color: #fff; }
-.btn-discount-remove { background: #4a1d96; color: #c4b5fd; }
-.btn-copy { background: #c8962c; color: #1a0e00; }
+.btn-discount-add { background: #8e44ad; color: #fff; }
+.btn-discount-remove { background: #5b2c6f; color: #e8daef; }
+.btn-copy { background: #f1c40f; color: #0a0805; }
 .btn-clear { background: #c0392b; color: #fff; }
-.grand-note { font-size: 11px; color: #555; text-align: center; }
+body.staff-no-admin .hdr-btn-admin {
+  opacity: .55;
+  cursor: not-allowed;
+  pointer-events: none;
+}
 .admin-open-btn {
   width: 100%;
   padding: 9px;
@@ -236,16 +325,15 @@ body.visitor-mode .visitor-banner { display: block; }
   margin-top: 4px;
   transition: all .15s;
 }
-.admin-open-btn:hover { border-color: #c8962c; color: #c8962c; }
+.admin-open-btn:hover { border-color: #f1c40f; color: #f1c40f; }
 
-/* TOP-RIGHT LOGIN + ADMIN BAR */
+/* TOP BAR — brand left, login / user actions right */
 .header-actions {
-  position: absolute;
-  top: 18px;
-  right: 20px;
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 10px;
+  flex-shrink: 0;
 }
 .btn-google-login {
   display: flex;
@@ -277,64 +365,64 @@ body.visitor-mode .visitor-banner { display: block; }
 .header-bar-logged {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 .hdr-user-chip {
   display: flex;
   align-items: center;
   gap: 8px;
-  background: #1e1408;
-  border: 1px solid #3d2e0e;
-  border-radius: 30px;
-  padding: 5px 12px 5px 5px;
+  padding: 0;
   cursor: default;
 }
 .hdr-avatar {
-  width: 28px; height: 28px;
+  width: 32px; height: 32px;
   border-radius: 50%;
-  border: 1px solid #c8962c;
+  border: 1px solid #d4af37;
   background: #3d2e0e;
   display: flex; align-items: center; justify-content: center;
-  font-size: 12px; font-weight: 700; color: #f0c060;
+  font-size: 12px; font-weight: 700; color: #d4af37;
   flex-shrink: 0;
   overflow: hidden;
 }
 .hdr-avatar img { width: 100%; height: 100%; object-fit: cover; }
-.hdr-name { font-size: 13px; font-weight: 500; color: #f0e8cc; }
+.hdr-name { font-size: 14px; font-weight: 500; color: #e8dcc8; white-space: nowrap; }
 .hdr-role-badge {
-  padding: 2px 10px;
+  padding: 3px 10px;
   border-radius: 20px;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
   white-space: nowrap;
+  background: #1a1208;
+  border: 1px solid #3d2e0e;
 }
-.hdr-btn-admin {
+.hdr-role-badge.badge-coceo { color: #e74c3c; border-color: #5c2018; }
+.hdr-btn-admin,
+.hdr-btn-logout {
   display: flex; align-items: center; gap: 6px;
-  padding: 7px 14px;
-  background: #2d1e06;
-  border: 1px solid #c8962c;
+  padding: 8px 14px;
+  background: #1a1208;
+  border: 1px solid #d4af37;
   border-radius: 8px;
-  color: #f0c060;
   font-family: 'Prompt', sans-serif;
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
-  transition: background .15s;
+  transition: background .15s, border-color .15s;
+  white-space: nowrap;
 }
-.hdr-btn-admin:hover { background: #3d2e0e; }
+.hdr-btn-admin {
+  color: #d4af37;
+}
+.hdr-btn-admin:hover,
+.hdr-btn-logout:hover {
+  background: #2d1e06;
+  border-color: #f1c40f;
+}
 .hdr-btn-logout {
-  display: flex; align-items: center; gap: 6px;
-  padding: 7px 14px;
-  background: #2a1010;
-  border: 1px solid #7f1d1d;
-  border-radius: 8px;
-  color: #fca5a5;
-  font-family: 'Prompt', sans-serif;
-  font-size: 13px;
-  cursor: pointer;
-  transition: background .15s;
+  color: #c8b896;
 }
-.hdr-btn-logout:hover { background: #3d1515; }
 
 
 /* GOOGLE LOGIN POPUP */
@@ -404,7 +492,7 @@ body.visitor-mode .visitor-banner { display: block; }
 .google-popup-note { font-size: 11px; color: #aaa; margin-top: 10px; }
 
 /* SEND ORDER BUTTON */
-.btn-send-order { background: linear-gradient(135deg, #22c55e, #16a34a); color: #fff; }
+.btn-send-order { background: linear-gradient(135deg, #27ae60, #1e8449); color: #fff; }
 .btn-send-order:hover { opacity: .9; }
 
 /* ══════════════════════════════════════
@@ -444,7 +532,7 @@ body.visitor-mode .visitor-banner { display: block; }
   font-family: 'Cinzel', serif;
   font-size: 17px;
   font-weight: 700;
-  color: #f0c060;
+  color: #f1c40f;
   letter-spacing: 2px;
   display: flex;
   align-items: center;
@@ -477,7 +565,7 @@ body.visitor-mode .visitor-banner { display: block; }
 .admin-avatar {
   width: 46px; height: 46px;
   border-radius: 50%;
-  border: 2px solid #c8962c;
+  border: 2px solid #f1c40f;
   background: #3d2e0e;
   display: flex; align-items: center; justify-content: center;
   font-weight: 600; font-size: 15px; color: #f0c060;
@@ -500,7 +588,7 @@ body.visitor-mode .visitor-banner { display: block; }
   white-space: nowrap;
 }
 .badge-ceo      { background: #2d1e06; color: #ffd700; border: 1px solid #ffd700; }
-.badge-coceo    { background: #3d2e0e; color: #f0c060; border: 1px solid #c8962c; }
+.badge-coceo    { background: #3d2e0e; color: #f0c060; border: 1px solid #f1c40f; }
 .badge-manager  { background: #1e1a3a; color: #a78bfa; border: 1px solid #7c3aed; }
 .badge-staff    { background: #1a1e3a; color: #60a5fa; border: 1px solid #2563eb; }
 .badge-parttime { background: #1a2a1a; color: #4ade80; border: 1px solid #16a34a; }
@@ -530,7 +618,7 @@ body.visitor-mode .visitor-banner { display: block; }
   display: flex; align-items: center; justify-content: center; gap: 5px;
 }
 .admin-tab:hover { color: #f0e8cc; }
-.admin-tab.active { background: #c8962c; color: #1a0e00; font-weight: 600; }
+.admin-tab.active { background: #f1c40f; color: #1a0e00; font-weight: 600; }
 
 /* Tab panels */
 .tab-panel { display: none; }
@@ -539,7 +627,7 @@ body.visitor-mode .visitor-banner { display: block; }
 .panel-section-title {
   font-size: 13px;
   font-weight: 500;
-  color: #c8962c;
+  color: #f1c40f;
   display: flex; align-items: center; gap: 6px;
   margin-bottom: 16px;
   padding-bottom: 10px;
@@ -571,7 +659,7 @@ body.visitor-mode .visitor-banner { display: block; }
 }
 .form-group input::placeholder { color: #4a3820; }
 .form-group input:focus,
-.form-group select:focus { border-color: #c8962c; }
+.form-group select:focus { border-color: #f1c40f; }
 .form-group select option { background: #1a1209; }
 
 .btn-add-staff {
@@ -691,7 +779,7 @@ body.visitor-mode .visitor-banner { display: block; }
   font-size: 13px;
   outline: none;
 }
-.add-position-row input:focus { border-color: #c8962c; }
+.add-position-row input:focus { border-color: #f1c40f; }
 .color-picker-wrap {
   width: 36px; height: 36px;
   border-radius: 7px;
@@ -765,9 +853,13 @@ body.visitor-mode .visitor-banner { display: block; }
 <!-- ══ POS PAGE ══ -->
 <div id="pos-page">
   <header class="pos-header">
-    <h1>🍣 Central Cafe</h1>
-    <p>Japanese Dining POS System</p>
-    <!-- Top bar — user chip + admin + logout -->
+    <div class="pos-header-brand">
+      <span class="pos-header-crown">👑</span>
+      <div class="pos-header-titles">
+        <h1>CENTRAL CAFE</h1>
+        <p>VIP MEMBER SYSTEM</p>
+      </div>
+    </div>
     <div class="header-actions" id="headerActions">
       <!-- Shown when NOT logged in -->
       <button class="btn-google-login" id="googleLoginBtn" onclick="openGooglePopup()">
@@ -779,7 +871,7 @@ body.visitor-mode .visitor-banner { display: block; }
 
   <div class="pos-body">
     <!-- MENU -->
-    <div class="menu-grid" id="menuGrid"></div>
+    <div class="menu-sections" id="menuSections"></div>
 
     <!-- ORDER BILL -->
     <div class="order-panel">
@@ -791,7 +883,6 @@ body.visitor-mode .visitor-banner { display: block; }
 
       <button class="order-btn btn-discount-add" id="btnDiscountAdd" onclick="changeDiscount(5)">+5% Discount</button>
       <button class="order-btn btn-discount-remove" id="btnDiscountRemove" onclick="changeDiscount(-5)" style="display:none">-5% Discount</button>
-      <div class="grand-note">Grand Opening รองรับส่วนลดสะสมทีละ 5%</div>
       <button class="order-btn btn-send-order" onclick="sendOrder()">📤 ส่งออเดอร์</button>
     </div>
   </div>
@@ -802,7 +893,7 @@ body.visitor-mode .visitor-banner { display: block; }
   <div class="admin-modal">
     <!-- Header bar -->
     <div class="admin-modal-header">
-      <div class="admin-modal-title">⚙ ADMIN PANEL</div>
+      <div class="admin-modal-title">⚙ OWNER PANEL</div>
       <button class="admin-close-btn" onclick="closeAdmin()">✕</button>
     </div>
 
@@ -898,15 +989,41 @@ body.visitor-mode .visitor-banner { display: block; }
 /* ══════════════════════════════════════
    DATA
 ══════════════════════════════════════ */
-const menuItems = [
-  { name:'Salmon Sashimi',  price:220, img:'https://images.unsplash.com/photo-1617196034183-421b4040ed20?w=400&q=80' },
-  { name:'Tuna Sashimi',    price:220, img:'https://images.unsplash.com/photo-1617196034099-cb5e96be8bab?w=400&q=80' },
-  { name:'Premium Unagi',   price:220, img:'https://images.unsplash.com/photo-1553621042-f6e147245754?w=400&q=80' },
-  { name:'Grand Maguro',    price:220, img:'https://images.unsplash.com/photo-1559410545-0bdcd187e0a6?w=400&q=80' },
-  { name:'Salmon Nigiri',   price:220, img:'https://images.unsplash.com/photo-1611143669185-af224c5e3252?w=400&q=80' },
-  { name:'Matcha',          price:180, img:'https://images.unsplash.com/photo-1515823662972-da6a2ab233e5?w=400&q=80' },
-  { name:'Lemon Shine',     price:180, img:'https://images.unsplash.com/photo-1544145945-f90425340c7e?w=400&q=80' },
-  { name:'Lychee Dream',    price:180, img:'https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=400&q=80' },
+const menuCategories = [
+  {
+    icon: '🍣',
+    title: 'เมนูอาหาร',
+    badge: 'อาหาร',
+    badgeClass: 'badge-food',
+    items: [
+      { name:'Salmon Sashimi',  price:220, img:'assets/salmon-sashimi.png' },
+      { name:'Tuna Sashimi',    price:220, img:'assets/tuna-sashimi.png' },
+      { name:'Premium Unagi',   price:220, img:'assets/premium-unagi.png' },
+      { name:'Grand Maguro',    price:220, img:'assets/grand-maguro.png' },
+      { name:'Salmon Nigiri',   price:220, img:'assets/salmon-nigiri.png' },
+    ]
+  },
+  {
+    icon: '🍹',
+    title: 'เครื่องดื่ม',
+    badge: 'เครื่องดื่ม',
+    badgeClass: 'badge-drink',
+    items: [
+      { name:'Matcha',          price:180, img:'assets/matcha.png' },
+      { name:'Lemon Shine',     price:180, img:'assets/lemon-shine.png' },
+      { name:'Lychee Dream',    price:180, img:'assets/lychee-dream.png' },
+    ]
+  },
+  {
+    icon: '⭐',
+    title: 'เซ็ตพิเศษ',
+    badge: 'เซ็ต',
+    badgeClass: 'badge-set',
+    items: [
+      { name:'Signature Set',   price:1500, img:'assets/signature-set.png', imgFit:'cover' },
+      { name:'Premier Set',     price:1500, img:'assets/premier-set.png', imgFit:'contain' },
+    ]
+  }
 ];
 
 const roleColors = {
@@ -928,7 +1045,7 @@ let discountPct = 0;
 function myRole() { return (window.googleUser && window.googleUser.role) || 'VISITOR'; }
 function canUsePos()   { return ['CEO','CO CEO','MANAGER','STAFF','PART TIME'].includes(myRole()); }
 function canEditAdmin(){ return ['CEO','CO CEO','MANAGER'].includes(myRole()); }
-function canViewAdmin(){ return ['CEO','CO CEO','MANAGER','STAFF','PART TIME','VISITOR'].includes(myRole()); }
+function canViewAdmin(){ return ['CEO','CO CEO','MANAGER'].includes(myRole()); }
 
 let staffList = [
   { name:'Moonbin Kim',      email:'yest0816@gmail.com',      role:'CEO' },
@@ -951,16 +1068,30 @@ let historyLog = [];
    POS FUNCTIONS
 ══════════════════════════════════════ */
 function buildMenu() {
-  document.getElementById('menuGrid').innerHTML = menuItems.map(item => `
-    <div class="menu-card">
-      <img src="${item.img}" alt="${item.name}" loading="lazy"
-           onerror="this.style.background='#2a2a2a';this.removeAttribute('src')">
-      <div class="menu-card-body">
-        <h3>${item.name}</h3>
-        <p>${item.price} บาท</p>
+  document.getElementById('menuSections').innerHTML = menuCategories.map(cat => `
+    <section class="menu-category">
+      <div class="menu-category-header">
+        <span class="cat-icon">${cat.icon}</span>
+        <h2>${cat.title}</h2>
       </div>
-      <button class="menu-card-btn" onclick="addItem('${item.name}',${item.price})">เพิ่มรายการ</button>
-    </div>
+      <div class="menu-category-grid">
+        ${cat.items.map(item => `
+          <div class="menu-card">
+            <span class="menu-card-badge ${cat.badgeClass}">${cat.badge}</span>
+            <div class="menu-card-img-wrap">
+              <img src="${item.img}" alt="${item.name}" loading="lazy"
+                   class="${item.imgFit === 'contain' ? 'img-fit-contain' : ''}"
+                   onerror="this.style.background='#141008';this.removeAttribute('src')">
+            </div>
+            <div class="menu-card-body">
+              <h3>${item.name}</h3>
+              <p>${item.price.toLocaleString()} บาท</p>
+            </div>
+            <button class="menu-card-btn" onclick="addItem('${item.name.replace(/'/g, "\\'")}',${item.price})">เพิ่มรายการ</button>
+          </div>
+        `).join('')}
+      </div>
+    </section>
   `).join('');
 }
 
@@ -1033,7 +1164,7 @@ function clearBill() {
    ADMIN PANEL
 ══════════════════════════════════════ */
 function openAdmin()  {
-  if (!canViewAdmin()) { showToast('กรุณา Login ก่อนเข้า Admin Panel', true); return; }
+  if (!canViewAdmin()) return;
   document.getElementById('admin-overlay').classList.add('open');
   updateAdminUserCard();
   applyAdminPermissions();
@@ -1345,18 +1476,16 @@ function updateHeaderBar() {
         <span class="hdr-name">${firstName}</span>
         <span class="hdr-role-badge ${bc}">${ic} ${role}</span>
       </div>
-      <button class="hdr-btn-admin" onclick="openAdmin()">⚙ Admin Panel</button>
+      <button class="hdr-btn-admin" onclick="openAdmin()">⚙ Owner Panel</button>
       <button class="hdr-btn-logout" onclick="doSignOut()">🚪 ออกจากระบบ</button>
     </div>`;
   applyPosPermissions();
 }
 
 function applyPosPermissions() {
-  if (myRole() === 'VISITOR') {
-    document.body.classList.add('visitor-mode');
-  } else {
-    document.body.classList.remove('visitor-mode');
-  }
+  const role = myRole();
+  document.body.classList.toggle('visitor-mode', role === 'VISITOR');
+  document.body.classList.toggle('staff-no-admin', ['STAFF', 'PART TIME'].includes(role));
 }
 
 
@@ -1438,6 +1567,7 @@ renderStaff();
 renderRanks();
 renderPositions();
 renderHistory();
+applyPosPermissions();
 </script>
 </body>
 </html>
