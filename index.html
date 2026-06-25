@@ -1130,11 +1130,10 @@ function confirmSendOrder(){
     sub,disc,tot
   };
 
-  try{
-    const po=JSON.parse(localStorage.getItem('cf_orders')||'[]');
-    po.unshift(entry);
-    localStorage.setItem('cf_orders',JSON.stringify(po));
-  }catch(e){}
+  // บันทึกลง Firebase
+  if(window._fbDb){
+    window._fbFns.set(window._fbFns.ref(window._fbDb, 'orders/' + entry.id), entry);
+  }
 
   toast('📨 ส่งออเดอร์ของ "'+name+'" แล้ว ✅',3000);
 
@@ -1146,11 +1145,7 @@ function confirmSendOrder(){
 }
 
 function getPendingOrders(){
-  try{
-    return JSON.parse(localStorage.getItem('cf_orders')||'[]');
-  }catch(e){
-    return [];
-  }
+  return window._fbOrders || [];
 }
 
 function updateOrderBadge(){
@@ -1182,16 +1177,15 @@ function confirmAcceptOrder(){
   }
   if(!_pendingAcceptId) return;
 
-  try{
-    const po=JSON.parse(localStorage.getItem('cf_orders')||'[]');
-    const idx=po.findIndex(o=>o.id===_pendingAcceptId);
-    if(idx!==-1){
-      po[idx].status='cooking';
-      po[idx].staffName=staffName;
-      po[idx].acceptedAt=new Date().toISOString();
-      localStorage.setItem('cf_orders',JSON.stringify(po));
-    }
-  }catch(e){}
+  // อัปเดตลง Firebase
+  if(window._fbDb && _pendingAcceptId){
+    const { ref, update } = window._fbFns;
+    update(ref(window._fbDb, 'orders/' + _pendingAcceptId), {
+      status:'cooking',
+      staffName:staffName,
+      acceptedAt:new Date().toISOString()
+    });
+  }
 
   closeAcceptPopup();
   updateOrderBadge();
@@ -1201,15 +1195,14 @@ function confirmAcceptOrder(){
 
 // ---- Chef done (cooking → ready) ----
 function markOrderReady(id){
-  try{
-    const po=JSON.parse(localStorage.getItem('cf_orders')||'[]');
-    const idx=po.findIndex(o=>o.id===id);
-    if(idx!==-1){
-      po[idx].status='ready';
-      po[idx].readyAt=new Date().toISOString();
-      localStorage.setItem('cf_orders',JSON.stringify(po));
-    }
-  }catch(e){}
+  // อัปเดตลง Firebase
+  if(window._fbDb){
+    const { ref, update } = window._fbFns;
+    update(ref(window._fbDb, 'orders/' + id), {
+      status:'ready',
+      readyAt:new Date().toISOString()
+    });
+  }
   updateOrderBadge();
   openOrders();
   toast('🍽️ พร้อมเสิร์ฟแล้ว!',2500);
@@ -1222,16 +1215,13 @@ function markOrderDone(id){
   if(idx===-1) return;
   const [done]=po.splice(idx,1);
 
-  try{
-    localStorage.setItem('cf_orders',JSON.stringify(po));
-    const h=JSON.parse(localStorage.getItem('cf_hist')||'[]');
-    h.unshift({
-      ...done,
-      completedAt:new Date().toISOString()
-    });
-    if(h.length>100) h.pop();
-    localStorage.setItem('cf_hist',JSON.stringify(h));
-  }catch(e){}
+  // ลบจาก orders, บันทึกลง history ใน Firebase
+  if(window._fbDb){
+    const { ref, remove, set } = window._fbFns;
+    remove(ref(window._fbDb, 'orders/' + id));
+    const histEntry = {...done, completedAt:new Date().toISOString()};
+    set(ref(window._fbDb, 'history/' + id), histEntry);
+  }
 
   updateOrderBadge();
   openOrders();
@@ -1335,12 +1325,11 @@ function payBill(){
     sub,disc,tot
   };
 
-  try{
-    const h=JSON.parse(localStorage.getItem('cf_hist')||'[]');
-    h.unshift(entry);
-    if(h.length>100) h.pop();
-    localStorage.setItem('cf_hist',JSON.stringify(h));
-  }catch(e){}
+  // บันทึก history ลง Firebase
+  if(window._fbDb){
+    const { ref, set } = window._fbFns;
+    set(ref(window._fbDb, 'history/' + entry.id), entry);
+  }
 
   toast('💾 บันทึกบิลแล้ว $'+tot.toLocaleString()+' ✅',3000);
   order={};
@@ -1349,10 +1338,7 @@ function payBill(){
 }
 
 function openHist(){
-  let h=[];
-  try{
-    h=JSON.parse(localStorage.getItem('cf_hist')||'[]');
-  }catch(e){}
+  let h = window._fbHistory || [];
 
   const el=document.getElementById('histList');
   el.innerHTML = h.length
@@ -1393,5 +1379,41 @@ updateOrderBadge();
   </div>
 </div>
 
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, set, update, remove, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDqOpfT1kYwMqJxBabfxQ_8sIOxxsSZeX8",
+  authDomain: "central-pos-e4226.firebaseapp.com",
+  databaseURL: "https://central-pos-e4226-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "central-pos-e4226",
+  storageBucket: "central-pos-e4226.firebasestorage.app",
+  messagingSenderId: "994704140397",
+  appId: "1:994704140397:web:95b0cc1253d734c5d43764"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+// เปิดให้ฟังก์ชันหลักเรียกใช้ได้
+window._fbDb = db;
+window._fbFns = { ref, set, update, remove };
+
+// ดึง orders แบบ realtime
+onValue(ref(db, 'orders'), (snapshot) => {
+  const data = snapshot.val() || {};
+  // เรียงจากใหม่ไปเก่า
+  window._fbOrders = Object.values(data).sort((a,b) => b.createdAt > a.createdAt ? 1 : -1);
+  if(typeof updateOrderBadge === 'function') updateOrderBadge();
+});
+
+// ดึง history แบบ realtime
+onValue(ref(db, 'history'), (snapshot) => {
+  const data = snapshot.val() || {};
+  window._fbHistory = Object.values(data).sort((a,b) => b.createdAt > a.createdAt ? 1 : -1);
+});
+</script>
 </body>
 </html>
