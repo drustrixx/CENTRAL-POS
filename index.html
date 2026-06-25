@@ -41,12 +41,20 @@
 
   /* ===== HEADER ===== */
   .header{
-    text-align:center;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
     padding:14px 23px 11px;
     background:linear-gradient(180deg,#1c0e00 0%,#0d0800 100%);
     border-bottom:2px solid #6b4f00;
     position:relative;
     flex-shrink:0;
+    gap:16px;
+  }
+  .header-left{
+    display:flex;
+    flex-direction:column;
+    align-items:flex-start;
   }
   .header-logo{
     font-family:'Cinzel',serif;
@@ -56,7 +64,7 @@
     line-height:1.1;
     display:flex;
     align-items:center;
-    justify-content:center;
+    justify-content:flex-start;
     gap:10px;
   }
   .header-logo-icon{
@@ -70,6 +78,44 @@
     color:#9a8060;
     letter-spacing:2px;
     margin-top:1px;
+  }
+  .header-right{
+    flex-shrink:0;
+  }
+  .btn-order-tab{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:11px 22px;
+    background:linear-gradient(135deg,#8B6914,#c9a84c,#e8c84a);
+    color:#1a0d00;
+    border:none;
+    border-radius:10px;
+    font-family:'Sarabun',sans-serif;
+    font-weight:700;
+    font-size:14px;
+    letter-spacing:0.5px;
+    cursor:pointer;
+    box-shadow:0 4px 16px rgba(201,168,76,.3);
+    transition:all .2s;
+    position:relative;
+  }
+  .btn-order-tab:hover{
+    opacity:.9;
+    transform:translateY(-1px);
+  }
+  .order-count-badge{
+    background:#B71C1C;
+    color:#fff;
+    font-size:11px;
+    font-weight:700;
+    min-width:20px;
+    height:20px;
+    border-radius:10px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:0 5px;
   }
 
   /* ===== MAIN BODY ===== */
@@ -394,8 +440,6 @@
   .btn:active{transform:scale(.98)}
   .b-disc{background:linear-gradient(135deg,#6a1b9a,#9C27B0);color:#fff}
   .b-disc:hover{background:linear-gradient(135deg,#7B1FA2,#AB47BC)}
-  .b-copy{background:linear-gradient(135deg,#bf360c,#E64A19);color:#fff}
-  .b-copy:hover{background:linear-gradient(135deg,#d84315,#FF5722)}
   .b-hist{background:linear-gradient(135deg,#0d47a1,#1976D2);color:#fff}
   .b-hist:hover{background:linear-gradient(135deg,#1565C0,#42A5F5)}
   .b-pay{background:linear-gradient(135deg,#1b5e20,#388E3C);color:#fff}
@@ -489,6 +533,110 @@
     font-size:13px;
   }
 
+  /* ===== SEND ORDER POPUP ===== */
+  .name-popup-box{
+    background:#0f0b00;
+    border:2px solid #8B6914;
+    border-radius:16px;
+    padding:26px;
+    width:380px;
+    text-align:center;
+  }
+  .name-popup-box h3{
+    font-family:'Cinzel',serif;
+    font-size:15px;
+    color:var(--gold);
+    letter-spacing:1px;
+    margin-bottom:6px;
+  }
+  .name-popup-sub{
+    font-size:12px;
+    color:#9a8060;
+    margin-bottom:16px;
+  }
+  .name-popup-box input{
+    width:100%;
+    padding:13px 14px;
+    background:#0a0800;
+    border:1px solid #3a2800;
+    border-radius:10px;
+    color:#f0e6c8;
+    font-family:'Sarabun',sans-serif;
+    font-size:14px;
+    margin-bottom:14px;
+    outline:none;
+  }
+  .name-popup-box input:focus{border-color:var(--gold)}
+  .name-popup-actions{
+    display:flex;
+    gap:10px;
+  }
+  .name-popup-actions button{
+    flex:1;
+    padding:12px;
+    border:none;
+    border-radius:10px;
+    font-family:'Sarabun',sans-serif;
+    font-weight:700;
+    font-size:13px;
+    cursor:pointer;
+    transition:opacity .2s;
+  }
+  .name-popup-actions button:hover{opacity:.85}
+  .name-popup-cancel{background:#1a1500;color:#9a8060;border:1px solid #3a2800 !important}
+  .name-popup-confirm{background:linear-gradient(135deg,#1b5e20,#388E3C);color:#fff}
+
+  /* ===== ORDER LIST (sent orders) ===== */
+  .oentry{
+    background:#0a0800;
+    border:1px solid #2a1e00;
+    border-radius:10px;
+    padding:13px;
+    margin-bottom:9px;
+  }
+  .oentry-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:6px;
+  }
+  .oentry-cust{
+    font-size:13px;
+    font-weight:700;
+    color:var(--gold);
+  }
+  .oentry-time{
+    font-size:10px;
+    color:#555;
+  }
+  .oentry-items{
+    font-size:12px;
+    color:#a89060;
+    margin-bottom:6px;
+    line-height:1.5;
+  }
+  .oentry-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+  }
+  .oentry-total{
+    font-size:13px;
+    color:#4CAF50;
+    font-weight:700;
+  }
+  .oentry-done-btn{
+    background:linear-gradient(135deg,#1b5e20,#388E3C);
+    color:#fff;
+    border:none;
+    border-radius:7px;
+    padding:6px 12px;
+    font-size:11px;
+    font-weight:700;
+    cursor:pointer;
+  }
+  .oentry-done-btn:hover{opacity:.85}
+
   /* ===== TOAST ===== */
   .toast{
     position:fixed;
@@ -525,8 +673,16 @@
 
   <!-- HEADER -->
   <div class="header">
-    <div class="header-logo"><img id="logoIcon" class="header-logo-icon" alt="matcha" src="" /> Central Cafe</div>
-    <div class="header-sub">Japanese Dining POS System</div>
+    <div class="header-left">
+      <div class="header-logo"><img id="logoIcon" class="header-logo-icon" alt="matcha" src="" /> Central Cafe</div>
+      <div class="header-sub">Japanese Dining POS System</div>
+    </div>
+    <div class="header-right">
+      <button class="btn-order-tab" onclick="openOrders()">
+        🧾 ออเดอร์
+        <span class="order-count-badge" id="orderCountBadge">0</span>
+      </button>
+    </div>
   </div>
 
   <!-- BODY -->
@@ -571,9 +727,8 @@
         <div class="btns">
           <button class="btn b-disc" onclick="addDisc()">+5% ส่วนลด</button>
           <button class="btn b-disc" onclick="subDisc()">−5% ส่วนลด</button>
-          <button class="btn b-copy" onclick="copyBill()">📋 คัดลอกบิล</button>
           <button class="btn b-hist" onclick="openHist()">📜 ประวัติบิล</button>
-          <button class="btn b-clear" onclick="clearBill()">🗑️ เคลียร์บิล</button>
+          <button class="btn b-clear" onclick="openSendOrderPopup()">📨 ส่งออเดอร์</button>
         </div>
 
         <div class="promo-txt">กดซ้ำเพื่อสะสมส่วนลดทีละ 5%</div>
@@ -591,6 +746,30 @@
       <button class="modal-close" onclick="document.getElementById('histOverlay').style.display='none'">✕</button>
     </div>
     <div class="modal-body" id="histList"></div>
+  </div>
+</div>
+
+<!-- SEND ORDER: ASK CUSTOMER NAME -->
+<div id="sendOrderOverlay" class="overlay" style="display:none">
+  <div class="name-popup-box">
+    <h3>📨 ส่งออเดอร์</h3>
+    <div class="name-popup-sub">กรอกชื่อลูกค้าที่สั่งออเดอร์นี้</div>
+    <input type="text" id="orderCustomerName" placeholder="ชื่อลูกค้า / โต๊ะ" autocomplete="off">
+    <div class="name-popup-actions">
+      <button class="name-popup-cancel" onclick="closeSendOrderPopup()">ยกเลิก</button>
+      <button class="name-popup-confirm" onclick="confirmSendOrder()">✓ ส่งออเดอร์</button>
+    </div>
+  </div>
+</div>
+
+<!-- ORDER LIST MODAL -->
+<div id="orderListOverlay" class="overlay" style="display:none">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-title">🧾 รายการออเดอร์</span>
+      <button class="modal-close" onclick="document.getElementById('orderListOverlay').style.display='none'">✕</button>
+    </div>
+    <div class="modal-body" id="orderList"></div>
   </div>
 </div>
 
@@ -712,60 +891,113 @@ function subDisc(){
   toast('ส่วนลด '+disc+'%');
 }
 
-function clearBill(){
-  const keys=Object.keys(order);
-  if(keys.length){
-    const sub=keys.reduce((s,id)=>s+order[id].price*order[id].qty,0);
-    const tot=sub-Math.round(sub*disc/100);
-    const entry={
-      time:new Date().toLocaleString('th-TH'),
-      table:SID,
-      items:Object.values(order).map(it=>it.name+' x'+it.qty).join(', '),
-      sub,disc,tot
-    };
-    try{
-      const h=JSON.parse(localStorage.getItem('cf_hist')||'[]');
-      h.unshift(entry);
-      if(h.length>50) h.pop();
-      localStorage.setItem('cf_hist',JSON.stringify(h));
-    }catch(e){}
-    toast('💾 บันทึกบิล $'+tot.toLocaleString()+' ✅ · เคลียร์แล้ว',3000);
-  }else{
-    toast('เคลียร์บิลแล้ว');
-  }
-  order={};
-  disc=0;
-  renderBill();
-}
-
-function copyBill(){
+function openSendOrderPopup(){
   const keys=Object.keys(order);
   if(!keys.length){
     toast('ไม่มีรายการในบิล');
     return;
   }
+  document.getElementById('orderCustomerName').value='';
+  document.getElementById('sendOrderOverlay').style.display='flex';
+  setTimeout(()=>document.getElementById('orderCustomerName').focus(),50);
+}
+
+function closeSendOrderPopup(){
+  document.getElementById('sendOrderOverlay').style.display='none';
+}
+
+function confirmSendOrder(){
+  const keys=Object.keys(order);
+  if(!keys.length){
+    closeSendOrderPopup();
+    return;
+  }
+
+  const name=document.getElementById('orderCustomerName').value.trim();
+  if(!name){
+    toast('กรุณากรอกชื่อลูกค้าก่อน');
+    return;
+  }
 
   const sub=keys.reduce((s,id)=>s+order[id].price*order[id].qty,0);
   const tot=sub-Math.round(sub*disc/100);
-  const lines=keys.map(id =>
-    `${order[id].name} x${order[id].qty}  =  $${(order[id].price*order[id].qty).toLocaleString()}`
-  ).join('\n');
 
-  const txt=
-`╔══════════════════╗
-   Central Cafe
-   ${SID}
-╚══════════════════╝
-${lines}
-──────────────────
-ส่วนลด: ${disc}%
-ยอดรวม: $${tot.toLocaleString()}`;
+  const entry={
+    id:Date.now().toString(36),
+    customer:name,
+    time:new Date().toLocaleString('th-TH'),
+    table:SID,
+    items:Object.values(order).map(it=>it.name+' x'+it.qty).join(', '),
+    sub,disc,tot
+  };
 
-  if(navigator.clipboard){
-    navigator.clipboard.writeText(txt).then(()=>toast('คัดลอกบิลแล้ว ✓'));
-  }else{
-    toast('คัดลอกบิลไม่สำเร็จ');
+  try{
+    const po=JSON.parse(localStorage.getItem('cf_orders')||'[]');
+    po.unshift(entry);
+    localStorage.setItem('cf_orders',JSON.stringify(po));
+  }catch(e){}
+
+  toast('📨 ส่งออเดอร์ของ "'+name+'" แล้ว ✅',3000);
+
+  order={};
+  disc=0;
+  renderBill();
+  closeSendOrderPopup();
+  updateOrderBadge();
+}
+
+function getPendingOrders(){
+  try{
+    return JSON.parse(localStorage.getItem('cf_orders')||'[]');
+  }catch(e){
+    return [];
   }
+}
+
+function updateOrderBadge(){
+  document.getElementById('orderCountBadge').textContent = getPendingOrders().length;
+}
+
+function openOrders(){
+  const po=getPendingOrders();
+  const el=document.getElementById('orderList');
+
+  el.innerHTML = po.length
+    ? po.map(o=>`
+      <div class="oentry">
+        <div class="oentry-head">
+          <span class="oentry-cust">👤 ${o.customer}</span>
+          <span class="oentry-time">${o.time}</span>
+        </div>
+        <div class="oentry-items">${o.items}</div>
+        <div class="oentry-foot">
+          <span class="oentry-total">ยอดรวม: $${o.tot.toLocaleString()} (ส่วนลด ${o.disc}%)</span>
+          <button class="oentry-done-btn" onclick="markOrderDone('${o.id}')">✓ เสร็จแล้ว</button>
+        </div>
+      </div>
+    `).join('')
+    : '<div class="no-hist">ยังไม่มีออเดอร์ที่ส่ง</div>';
+
+  document.getElementById('orderListOverlay').style.display='flex';
+}
+
+function markOrderDone(id){
+  const po=getPendingOrders();
+  const idx=po.findIndex(o=>o.id===id);
+  if(idx===-1) return;
+  const [done]=po.splice(idx,1);
+
+  try{
+    localStorage.setItem('cf_orders',JSON.stringify(po));
+    const h=JSON.parse(localStorage.getItem('cf_hist')||'[]');
+    h.unshift(done);
+    if(h.length>50) h.pop();
+    localStorage.setItem('cf_hist',JSON.stringify(h));
+  }catch(e){}
+
+  updateOrderBadge();
+  openOrders();
+  toast('💾 บันทึกบิล $'+done.tot.toLocaleString()+' แล้ว ✅',3000);
 }
 
 function payBill(){
@@ -827,6 +1059,7 @@ function toast(msg,dur=2000){
 
 renderMenus();
 renderBill();
+updateOrderBadge();
 </script>
 </body>
 </html>
