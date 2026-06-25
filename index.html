@@ -1243,7 +1243,7 @@ function renderStaff() {
     const ic = roleIcon[s.role] || '';
     // Can only edit someone whose rank is strictly lower than mine
     const canEditThis = canEdit && !isTop(s.role) && roleRank(s.role) > myRank;
-    // Roles available to assign = only roles strictly below my own rank
+    // Roles available to assign = only roles strictly below my own rank (not equal)
     const allowedRoles = positions.filter(p => roleRank(p.name) > myRank);
     const actions = !canEditThis
       ? `<span class="view-only-text">ดูอย่างเดียว</span>`
@@ -1566,6 +1566,12 @@ function updateAdminUserCard() {
 // Override saveStaff to also write role back to DB
 function saveStaff(i) {
   const s = staffList[i];
+  // Security: cannot assign role >= own rank
+  if (roleRank(s.role) <= roleRank(myRole())) {
+    showToast('ไม่สามารถกำหนดยศที่สูงกว่าหรือเท่ากับตัวเองได้', true);
+    renderStaff();
+    return;
+  }
   if (s.uid && window._fbDb) {
     window._fbSet(window._fbRef(window._fbDb, `users/${s.uid}/role`), s.role);
     // If saving own role, update googleUser
