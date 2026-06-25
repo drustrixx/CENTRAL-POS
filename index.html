@@ -2387,7 +2387,15 @@ function orderServed(id) {
     ts
   };
   if (window._fbDb) {
-    window._fbPush(window._fbRef(window._fbDb, `orders_history/${weekKey}`), record);
+    window._fbPush(window._fbRef(window._fbDb, `orders_history/${weekKey}`), record)
+      .catch(err => {
+        console.error('Firebase write failed (orders_history):', err);
+        showToast('บันทึกประวัติออเดอร์ลง Firebase ไม่สำเร็จ: ' + err.message, true);
+        addHistory(`⚠️ บันทึกประวัติล้มเหลว (${o.customer}): ${err.message}`);
+      });
+  } else {
+    showToast('Firebase ยังไม่พร้อม — ประวัติออเดอร์นี้จะไม่ถูกบันทึก!', true);
+    addHistory(`⚠️ ไม่ได้บันทึกประวัติ (Firebase ไม่พร้อม): ${o.customer}`);
   }
   // Reflect immediately in local view without waiting for the listener round-trip
   if (!historyByWeek[weekKey]) historyByWeek[weekKey] = [];
@@ -2438,12 +2446,17 @@ function syncOrderHistoryFromDB() {
         newHistoryByWeek[weekKey] = records;
       } else {
         // Older than the 3-week window — remove permanently from Firebase
-        window._fbRemove(window._fbRef(window._fbDb, `orders_history/${weekKey}`));
+        window._fbRemove(window._fbRef(window._fbDb, `orders_history/${weekKey}`))
+          .catch(err => console.error('Firebase cleanup failed:', err));
       }
     });
 
     historyByWeek = newHistoryByWeek;
     renderOrderHistory();
+  }, (err) => {
+    console.error('Firebase read failed (orders_history):', err);
+    showToast('โหลดประวัติออเดอร์จาก Firebase ไม่สำเร็จ: ' + err.message, true);
+    addHistory(`⚠️ โหลดประวัติออเดอร์ล้มเหลว: ${err.message}`);
   });
 }
 
