@@ -1035,6 +1035,51 @@
   .pos-row-left{display:flex;align-items:center;gap:2px;}
   .pos-row-name{font-size:0.9rem;font-weight:600;}
 
+  /* ===== VIP-style Staff & Position ===== */
+  .vip-staff-form-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px;}
+  @media(max-width:600px){.vip-staff-form-grid{grid-template-columns:1fr;}}
+  .vip-field-group{display:flex;flex-direction:column;gap:5px;}
+  .vip-field-label{color:#9a8060;font-size:0.75rem;letter-spacing:0.5px;}
+  .vip-add-staff-btn{
+    width:100%;padding:12px;border:none;border-radius:9px;
+    background:#2E7D32;color:#fff;font-family:'Sarabun',sans-serif;
+    font-size:15px;font-weight:700;cursor:pointer;transition:opacity .2s;
+    letter-spacing:0.5px;
+  }
+  .vip-add-staff-btn:hover{opacity:.88;}
+  .vip-staff-section-title{
+    color:var(--gold);font-size:13px;font-weight:700;letter-spacing:1px;
+    margin:16px 0 10px;display:flex;align-items:center;gap:8px;
+  }
+  .vip-staff-section-title::after{content:'';flex:1;height:1px;background:#3a2800;}
+  /* staff card VIP style */
+  .vip-staff-card{
+    background:#141008;border:1px solid #2a1e00;border-radius:10px;
+    padding:13px 16px;display:flex;align-items:center;justify-content:space-between;
+    margin-bottom:8px;transition:border-color .2s;
+  }
+  .vip-staff-card:hover{border-color:#6b4f00;}
+  .vip-staff-card-left{display:flex;align-items:center;gap:12px;}
+  .vip-staff-card-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end;}
+  /* position list VIP style */
+  .vip-pos-list{
+    background:#141008;border:1px solid #2a1e00;border-radius:10px;
+    overflow:hidden;margin-bottom:14px;
+  }
+  .vip-pos-row{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:13px 16px;border-bottom:1px solid #1e1500;
+  }
+  .vip-pos-row:last-child{border-bottom:none;}
+  .vip-pos-row-left{display:flex;align-items:center;gap:8px;}
+  .vip-pos-add-row{display:flex;gap:10px;align-items:center;}
+  .vip-pos-add-btn{
+    padding:9px 18px;background:linear-gradient(135deg,#2E7D32,#43A047);
+    color:#fff;border:none;border-radius:8px;font-weight:700;font-size:14px;
+    cursor:pointer;transition:opacity .2s;white-space:nowrap;
+  }
+  .vip-pos-add-btn:hover{opacity:.85;}
+
   .rank-table-wrap{overflow-x:auto;}
   .rank-table{width:100%;border-collapse:collapse;font-size:0.83rem;}
   .rank-table th{color:#9a8060;font-size:0.68rem;letter-spacing:1px;text-transform:uppercase;padding:9px 12px;text-align:left;border-bottom:1px solid #2a1e00;}
@@ -1193,23 +1238,31 @@
       <!-- TAB: พนักงาน -->
       <div class="admin-page active" id="apage-staff">
         <div class="staff-form">
-          <div class="staff-form-title">➕ เพิ่มพนักงานใหม่</div>
-          <div class="staff-form-row">
-            <input class="staff-input" id="newStaffName" placeholder="ชื่อพนักงาน" autocomplete="off">
-            <select class="staff-select" id="newStaffPos">
-              <option value="">-- เลือกตำแหน่ง --</option>
-            </select>
-            <select class="staff-select" id="newStaffRole">
-              <option value="VISITOR">⚪ Visitor</option>
-              <option value="PART TIME">🟡 Part Time</option>
-              <option value="STAFF">🟢 Staff</option>
-              <option value="MANAGER">🔵 Manager</option>
-              <option value="CO CEO">🔴 CO CEO</option>
-              <option value="CEO">👑 CEO</option>
-            </select>
-            <button class="staff-add-btn" onclick="addStaff()">+ เพิ่ม</button>
+          <div class="staff-form-title">✦ เพิ่มพนักงานใหม่</div>
+          <div class="vip-staff-form-grid">
+            <div class="vip-field-group">
+              <label class="vip-field-label">ชื่อ</label>
+              <input class="staff-input" id="newStaffFirstName" placeholder="ชื่อจริง" autocomplete="off">
+            </div>
+            <div class="vip-field-group">
+              <label class="vip-field-label">นามสกุล</label>
+              <input class="staff-input" id="newStaffLastName" placeholder="นามสกุล" autocomplete="off">
+            </div>
+            <div class="vip-field-group">
+              <label class="vip-field-label">ยศ</label>
+              <select class="staff-select" id="newStaffRole">
+                <option value="MANAGER">💼 Manager</option>
+                <option value="CEO">👑 CEO</option>
+                <option value="CO CEO">🌟 CO CEO</option>
+                <option value="STAFF">🟢 Staff</option>
+                <option value="PART TIME">🟡 Part Time</option>
+                <option value="VISITOR">⚪ Visitor</option>
+              </select>
+            </div>
           </div>
+          <button class="vip-add-staff-btn" onclick="addStaff()">✔ เพิ่มพนักงาน</button>
         </div>
+        <div class="vip-staff-section-title">✦ รายชื่อพนักงาน</div>
         <div class="staff-list" id="staffList">
           <div class="staff-empty">กำลังโหลด...</div>
         </div>
@@ -1239,16 +1292,16 @@
 
       <!-- TAB: ตำแหน่ง -->
       <div class="admin-page" id="apage-position">
-        <div class="staff-form">
-          <div class="staff-form-title">➕ เพิ่มตำแหน่ง</div>
-          <div class="staff-form-row">
-            <input class="staff-input" id="newPosName" placeholder="ชื่อตำแหน่ง" autocomplete="off">
-            <input type="color" id="newPosColor" value="#c9a84c" title="สีตำแหน่ง" style="width:38px;height:38px;border-radius:8px;border:1px solid #3a2800;background:#1a1500;cursor:pointer;padding:3px;flex-shrink:0">
-            <button class="staff-add-btn" onclick="addPosition()">+ เพิ่ม</button>
-          </div>
+        <div class="vip-staff-subtitle" style="color:#9a8060;font-size:0.8rem;margin-bottom:14px;line-height:1.6">
+          ข้อมูลเชื่อมกับ Staff System — เพิ่ม/ลบที่นี่มีผลกับทั้งสองระบบ
         </div>
-        <div class="pos-list" id="positionList" style="background:#141008;border:1px solid #2a1e00;border-radius:10px;overflow:hidden;margin-top:4px">
+        <div class="vip-pos-list" id="positionList">
           <div class="staff-empty">กำลังโหลด...</div>
+        </div>
+        <div class="vip-pos-add-row">
+          <input class="staff-input" id="newPosName" placeholder="ชื่อตำแหน่งใหม่" autocomplete="off" style="flex:1">
+          <input type="color" id="newPosColor" value="#c9a84c" title="สีตำแหน่ง" style="width:38px;height:38px;border-radius:8px;border:1px solid #3a2800;background:#1a1500;cursor:pointer;padding:3px;flex-shrink:0">
+          <button class="vip-pos-add-btn" onclick="addPosition()">+ เพิ่ม</button>
         </div>
       </div>
 
@@ -1805,40 +1858,43 @@ function renderStaffList(){
   }
   entries.sort((a,b)=>(ROLE_LEVEL[(a[1].role||'VISITOR').toUpperCase()]||99)-(ROLE_LEVEL[(b[1].role||'VISITOR').toUpperCase()]||99));
   el.innerHTML = entries.map(([k,s]) => {
-    const pos = _posData[s.positionKey] ? _posData[s.positionKey].name : s.position || '—';
-    const posColor = _posData[s.positionKey]?.color || '#9a8060';
+    const displayName = (s.firstName && s.lastName)
+      ? s.firstName + ' ' + s.lastName
+      : (s.name || '?');
     const uRole = (s.role || 'VISITOR').toUpperCase().replace('-',' ');
-    const initials = (s.name || '?')[0].toUpperCase();
+    const initials = displayName[0].toUpperCase();
+    const isFixed = (uRole === 'CEO' || uRole === 'CO CEO');
+    const roleOpts = ROLES.map(r => `<option value="${r}" ${r===uRole?'selected':''}>${roleLbl(r)}</option>`).join('');
     return `
-      <div class="staff-card">
-        <div class="staff-card-left">
+      <div class="vip-staff-card">
+        <div class="vip-staff-card-left">
           <div class="staff-avatar-icon">${initials}</div>
           <div>
-            <div class="staff-card-name">${s.name}</div>
-            <div class="staff-card-pos" style="color:${posColor}">🏷️ ${pos}</div>
-            <div class="staff-card-role">
+            <div class="staff-card-name">${displayName}</div>
+            <div class="staff-card-role" style="margin-top:4px">
               <span class="role-badge ${roleCss(uRole)}">${roleLbl(uRole)}</span>
             </div>
           </div>
         </div>
-        <div class="staff-card-actions">
-          <button class="staff-del-btn" onclick="deleteStaff('${k}')">🗑 ลบ</button>
+        <div class="vip-staff-card-actions">
+          ${!isFixed ? `<select class="role-select-sm" id="rsel-${k}">${roleOpts}</select>
+          <button class="btn-save-sm" id="rsav-${k}" onclick="saveStaffRole('${k}')">บันทึก</button>
+          <button class="staff-del-btn" onclick="deleteStaff('${k}')">ลบ</button>` : `<span class="readonly-role">ดูอย่างเดียว</span>`}
         </div>
       </div>`;
   }).join('');
 }
 
 window.addStaff = function(){
-  const name = document.getElementById('newStaffName').value.trim();
-  const posKey = document.getElementById('newStaffPos').value;
+  const firstName = (document.getElementById('newStaffFirstName')?.value || '').trim();
+  const lastName = (document.getElementById('newStaffLastName')?.value || '').trim();
+  const name = firstName + (lastName ? ' ' + lastName : '');
   const role = document.getElementById('newStaffRole').value || 'VISITOR';
-  if(!name){ toast('กรุณากรอกชื่อพนักงาน'); return; }
-  if(!posKey){ toast('กรุณาเลือกตำแหน่ง'); return; }
-  const posName = _posData[posKey] ? _posData[posKey].name : '';
-  push(ref(db,'staff'), { name, position:posName, positionKey:posKey, role, addedAt:Date.now() });
-  document.getElementById('newStaffName').value = '';
-  document.getElementById('newStaffPos').value = '';
-  document.getElementById('newStaffRole').value = 'VISITOR';
+  if(!firstName){ toast('กรุณากรอกชื่อพนักงาน'); return; }
+  push(ref(db,'staff'), { name, firstName, lastName, role, addedAt:Date.now() });
+  document.getElementById('newStaffFirstName').value = '';
+  document.getElementById('newStaffLastName').value = '';
+  document.getElementById('newStaffRole').value = 'MANAGER';
   toast('✅ เพิ่มพนักงาน "'+name+'" แล้ว');
 };
 window.deleteStaff = function(key){
@@ -1902,22 +1958,15 @@ function renderPositionList(){
     el.innerHTML = '<div class="staff-empty">ยังไม่มีตำแหน่ง</div>';
     return;
   }
-  const counts = {};
-  Object.values(_staffData).forEach(s => {
-    if(s.positionKey) counts[s.positionKey] = (counts[s.positionKey]||0)+1;
-  });
   el.innerHTML = entries.map(([k,v]) => {
     const c = v.color || '#9a8060';
     return `
-    <div class="pos-row">
-      <div class="pos-row-left">
-        <span class="pos-color-dot" style="background:${c}"></span>
-        <span class="pos-row-name" style="color:${c}">${v.name}</span>
+    <div class="vip-pos-row">
+      <div class="vip-pos-row-left">
+        <span style="width:12px;height:12px;border-radius:50%;background:${c};display:inline-block;flex-shrink:0;"></span>
+        <span style="color:${c};font-size:0.9rem;font-weight:700;letter-spacing:0.5px;">${v.name}</span>
       </div>
-      <div style="display:flex;align-items:center;gap:10px;">
-        <span class="pos-card-count">👤 ${counts[k]||0} คน</span>
-        <button class="staff-del-btn" onclick="deletePosition('${k}')">🗑</button>
-      </div>
+      <button class="staff-del-btn" onclick="deletePosition('${k}')">ลบ</button>
     </div>`;
   }).join('');
 }
