@@ -62,22 +62,22 @@
       window.googleUser.role = role;
       window.googleUser.uid  = user.uid;
 
-      // Update header bar
-      if (typeof updateHeaderBar === 'function') updateHeaderBar();
-      if (typeof showToast === 'function')
-        showToast('เข้าสู่ระบบสำเร็จ: ' + user.displayName);
-      if (typeof addHistory === 'function')
-        addHistory('Login: ' + user.displayName + ' (' + user.email + ') | Role: ' + role);
-
-      // Sync staffList from DB
-      if (typeof syncStaffFromDB === 'function') syncStaffFromDB();
-      // Sync positions from DB
-      if (typeof syncPositionsFromDB === 'function') syncPositionsFromDB();
+      // Defer so page scripts are guaranteed loaded
+      setTimeout(() => {
+        if (typeof updateHeaderBar   === 'function') updateHeaderBar();
+        if (typeof showToast         === 'function') showToast('เข้าสู่ระบบสำเร็จ: ' + user.displayName);
+        if (typeof addHistory        === 'function') addHistory('Login: ' + user.displayName + ' (' + user.email + ') | Role: ' + role);
+        if (typeof syncStaffFromDB   === 'function') syncStaffFromDB();
+        if (typeof syncPositionsFromDB === 'function') syncPositionsFromDB();
+      }, 100);
 
     } else {
       // Signed out
       window.googleUser = null;
-      updateHeaderBar();
+      setTimeout(() => {
+        if (typeof updateHeaderBar === 'function') updateHeaderBar();
+      }, 100);
+    }
   });
 </script>
 <style>
@@ -1189,17 +1189,26 @@ function showToast(msg, isErr) {
 let googleUser = null;   // kept for legacy references; also set by onAuthStateChanged above
 
 function openGooglePopup() {
-  if (googleUser) {
-    // Already logged in → sign out
-    window._fbSignOut(window._fbAuth).then(() => {
-      showToast('ออกจากระบบแล้ว');
-    });
+  if (!window._fbAuth || !window._fbSignInWithPopup) {
+    showToast('Firebase ยังไม่พร้อม กรุณารอสักครู่', true);
     return;
   }
-  // Trigger Firebase Google popup directly (no intermediate popup needed)
+  if (window.googleUser) {
+    window._fbSignOut(window._fbAuth).then(() => {
+      showToast('ออกจากระบบแล้ว');
+    }).catch(err => showToast('ออกจากระบบล้มเหลว: ' + err.message, true));
+    return;
+  }
   window._fbSignInWithPopup(window._fbAuth, window._fbProvider).catch(err => {
     showToast('Login ล้มเหลว: ' + err.message, true);
   });
+}
+
+function doSignOut() {
+  if (!window._fbAuth) return;
+  window._fbSignOut(window._fbAuth).then(() => {
+    showToast('ออกจากระบบแล้ว');
+  }).catch(err => showToast('ออกจากระบบล้มเหลว: ' + err.message, true));
 }
 
 // Keep simulateGoogleLogin stub so any leftover HTML onclick doesn't throw
@@ -1291,7 +1300,7 @@ function updateHeaderBar() {
         <span class="hdr-role-badge ${bc}">${ic} ${role}</span>
       </div>
       <button class="hdr-btn-admin" onclick="openAdmin()">⚙ Admin Panel</button>
-      <button class="hdr-btn-logout" onclick="openGooglePopup()">🚪 ออกจากระบบ</button>
+      <button class="hdr-btn-logout" onclick="doSignOut()">🚪 ออกจากระบบ</button>
     </div>`;
 }
 
