@@ -946,6 +946,324 @@ body.staff-no-admin .hdr-btn-admin {
 .confirm-btns button:hover { opacity: .85; }
 .btn-confirm-cancel { background: #2d1e06; color: #8a7450; border: 1px solid #3d2e0e !important; }
 .btn-confirm-ok { background: #991b1b; color: #fff; }
+
+/* ══════════════════════════════════════
+   CUSTOMER NAME MODAL
+══════════════════════════════════════ */
+#customer-modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.75);
+  z-index: 600;
+  align-items: center;
+  justify-content: center;
+}
+#customer-modal-overlay.open { display: flex; }
+.customer-modal {
+  background: #1a1209;
+  border: 1px solid #f1c40f55;
+  border-radius: 16px;
+  padding: 28px 28px 22px;
+  width: 100%;
+  max-width: 380px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.7);
+  animation: confirmPop .2s cubic-bezier(.34,1.4,.64,1);
+  position: relative;
+}
+.customer-modal h3 {
+  font-family: 'Cinzel', serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: #f1c40f;
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+}
+.customer-modal p {
+  font-size: 12px;
+  color: #8a7450;
+  margin-bottom: 16px;
+}
+.customer-input-wrap { position: relative; }
+#customerNameInput {
+  width: 100%;
+  background: #110b03;
+  border: 1px solid #f1c40f55;
+  border-radius: 8px;
+  padding: 10px 14px;
+  color: #f0e8cc;
+  font-family: 'Prompt', sans-serif;
+  font-size: 14px;
+  outline: none;
+  transition: border-color .15s;
+}
+#customerNameInput:focus { border-color: #f1c40f; }
+.customer-suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #1f1408;
+  border: 1px solid #3d2e0e;
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  max-height: 140px;
+  overflow-y: auto;
+  z-index: 10;
+}
+.suggestion-item {
+  padding: 8px 14px;
+  font-size: 13px;
+  color: #f0e8cc;
+  cursor: pointer;
+  transition: background .1s;
+}
+.suggestion-item:hover { background: #2d1e06; color: #f1c40f; }
+.customer-modal-btns {
+  display: flex;
+  gap: 10px;
+  margin-top: 18px;
+}
+.customer-modal-btns button {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+  font-family: 'Prompt', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity .15s;
+}
+.customer-modal-btns button:hover { opacity: .85; }
+.btn-customer-cancel { background: #2d1e06; color: #8a7450; border: 1px solid #3d2e0e !important; }
+.btn-customer-ok { background: #f1c40f; color: #0a0805; }
+
+/* ══════════════════════════════════════
+   ORDER QUEUE PANEL (BOTTOM-SHEET OVERLAY)
+══════════════════════════════════════ */
+.btn-order-queue {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: linear-gradient(135deg, #f1c40f, #d4a800);
+  color: #0a0805;
+  border: none;
+  border-radius: 50px;
+  padding: 12px 22px;
+  font-family: 'Prompt', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(241,196,15,.4);
+  z-index: 150;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: box-shadow .2s, transform .15s;
+}
+.btn-order-queue:hover { box-shadow: 0 6px 28px rgba(241,196,15,.6); transform: translateY(-2px); }
+.btn-order-queue .queue-badge {
+  background: #c0392b;
+  color: #fff;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+}
+
+#order-queue-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.78);
+  z-index: 400;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 36px 16px 60px;
+  overflow-y: auto;
+}
+#order-queue-overlay.open { display: flex; }
+.order-queue-modal {
+  background: #1a1209;
+  border: 1px solid #3d2e0e;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 700px;
+  padding: 24px;
+}
+.order-queue-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+.order-queue-title {
+  font-family: 'Cinzel', serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: #f1c40f;
+  letter-spacing: 2px;
+}
+
+/* Queue tabs */
+.queue-tabs {
+  display: flex;
+  gap: 4px;
+  background: #110b03;
+  border: 1px solid #3d2e0e;
+  border-radius: 30px;
+  padding: 4px;
+  margin-bottom: 20px;
+}
+.queue-tab {
+  flex: 1;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 24px;
+  background: transparent;
+  color: #8a7450;
+  font-family: 'Prompt', sans-serif;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all .2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+.queue-tab:hover { color: #f0e8cc; }
+.queue-tab.active { background: #f1c40f; color: #1a0e00; font-weight: 600; }
+.queue-tab .tab-count {
+  background: rgba(0,0,0,.25);
+  border-radius: 10px;
+  padding: 1px 6px;
+  font-size: 10px;
+  font-weight: 700;
+}
+.queue-tab.active .tab-count { background: rgba(0,0,0,.2); }
+
+.queue-panel { display: none; }
+.queue-panel.active { display: block; }
+
+/* Order cards */
+.order-card {
+  background: #1f1408;
+  border: 1px solid #3d2e0e;
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  transition: border-color .2s;
+}
+.order-card:hover { border-color: #f1c40f44; }
+.order-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+.order-card-customer {
+  font-size: 15px;
+  font-weight: 600;
+  color: #f0e8cc;
+}
+.order-card-meta {
+  font-size: 11px;
+  color: #8a7450;
+  margin-top: 2px;
+}
+.order-card-time {
+  font-size: 11px;
+  color: #8a7450;
+  white-space: nowrap;
+}
+.order-card-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+.order-card-item-tag {
+  background: #2d1e06;
+  border: 1px solid #3d2e0e;
+  border-radius: 20px;
+  padding: 3px 10px;
+  font-size: 11px;
+  color: #c8b896;
+}
+.order-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.order-card-total {
+  font-size: 14px;
+  font-weight: 600;
+  color: #27ae60;
+}
+.order-card-actions { display: flex; gap: 8px; }
+.order-action-btn {
+  padding: 6px 14px;
+  border: none;
+  border-radius: 7px;
+  font-family: 'Prompt', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity .15s;
+}
+.order-action-btn:hover { opacity: .85; }
+.btn-accept { background: #2d8a4e; color: #fff; }
+.btn-done-cooking { background: #2563eb; color: #fff; }
+.btn-served { background: #27ae60; color: #fff; }
+
+.queue-empty {
+  text-align: center;
+  padding: 50px 0;
+  color: #4a3820;
+  font-size: 14px;
+}
+.queue-empty .queue-empty-icon { font-size: 36px; margin-bottom: 10px; }
+
+/* ══════════════════════════════════════
+   ORDER HISTORY TAB IN ADMIN
+══════════════════════════════════════ */
+.order-history-item {
+  background: #1f1408;
+  border: 1px solid #2d1e06;
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-bottom: 8px;
+}
+.order-history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+.order-history-customer {
+  font-size: 14px;
+  font-weight: 500;
+  color: #f0e8cc;
+}
+.order-history-time {
+  font-size: 11px;
+  color: #4a3820;
+}
+.order-history-items {
+  font-size: 12px;
+  color: #8a7450;
+  margin-bottom: 4px;
+}
+.order-history-total {
+  font-size: 13px;
+  font-weight: 600;
+  color: #27ae60;
+}
 </style>
 </head>
 <body>
@@ -1009,9 +1327,10 @@ body.staff-no-admin .hdr-btn-admin {
 
     <!-- Tabs -->
     <div class="admin-tabs">
-      <button class="admin-tab active" data-tab="staff" onclick="switchTab('staff',this)">👥 พนักงาน</button>
-      <button class="admin-tab" data-tab="positions" onclick="switchTab('positions',this)">📋 ตำแหน่ง</button>
-      <button class="admin-tab" data-tab="history" onclick="switchTab('history',this)">📖 ประวัติ</button>
+      <button class="admin-tab active" data-tab="staff" onclick="switchTab('staff',this)">&#x1F465; พนักงาน</button>
+      <button class="admin-tab" data-tab="positions" onclick="switchTab('positions',this)">&#x1F4CB; ตำแหน่ง</button>
+      <button class="admin-tab" data-tab="orderhistory" onclick="switchTab('orderhistory',this)">&#x1F9FE; ประวัติออเดอร์</button>
+      <button class="admin-tab" data-tab="history" onclick="switchTab('history',this)">&#x1F4D6; ประวัติ</button>
     </div>
 
     <!-- ── TAB: STAFF ── -->
@@ -1049,6 +1368,14 @@ body.staff-no-admin .hdr-btn-admin {
       </div>
     </div>
 
+    <!-- ── TAB: ORDER HISTORY ── -->
+    <div class="tab-panel" id="tab-orderhistory">
+      <div class="panel-section-title">&#x2728; ประวัติออเดอร์ที่เสิร์ฟแล้ว</div>
+      <div id="orderHistoryContainer">
+        <div class="history-empty">ยังไม่มีประวัติออเดอร์</div>
+      </div>
+    </div>
+
     <!-- ── TAB: HISTORY ── -->
     <div class="tab-panel" id="tab-history">
       <div class="panel-section-title">✦ ประวัติการดำเนินการ</div>
@@ -1076,6 +1403,61 @@ body.staff-no-admin .hdr-btn-admin {
 
 <!-- Toast -->
 <div class="toast" id="toast"></div>
+
+<!-- ══ CUSTOMER NAME MODAL ══ -->
+<div id="customer-modal-overlay">
+  <div class="customer-modal">
+    <h3>👤 ชื่อลูกค้า</h3>
+    <p>กรุณากรอกชื่อลูกค้า หรือเลือกจากรายชื่อที่เคยมา</p>
+    <div class="customer-input-wrap">
+      <input type="text" id="customerNameInput" placeholder="ชื่อลูกค้า..." autocomplete="off"
+        oninput="filterCustomerSuggestions()" onkeydown="handleCustomerKey(event)">
+      <div class="customer-suggestions" id="customerSuggestions"></div>
+    </div>
+    <div class="customer-modal-btns">
+      <button class="btn-customer-cancel" onclick="closeCustomerModal()">ยกเลิก</button>
+      <button class="btn-customer-ok" onclick="confirmCustomerAndSend()">&#10003; ยืนยันส่งออเดอร์</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ ORDER QUEUE OVERLAY ══ -->
+<div id="order-queue-overlay" onclick="queueOverlayClick(event)">
+  <div class="order-queue-modal">
+    <div class="order-queue-header">
+      <div class="order-queue-title">&#127857; รายการออเดอร์</div>
+      <button class="admin-close-btn" onclick="closeOrderQueue()">&#x2715;</button>
+    </div>
+
+    <div class="queue-tabs">
+      <button class="queue-tab active" data-qtab="pending" onclick="switchQueueTab('pending',this)">
+        &#x1F550; ออเดอร์ <span class="tab-count" id="cnt-pending">0</span>
+      </button>
+      <button class="queue-tab" data-qtab="cooking" onclick="switchQueueTab('cooking',this)">
+        &#128104;&#8205;&#127859; กำลังทำ <span class="tab-count" id="cnt-cooking">0</span>
+      </button>
+      <button class="queue-tab" data-qtab="ready" onclick="switchQueueTab('ready',this)">
+        &#x2705; พร้อมเสิร์ฟ <span class="tab-count" id="cnt-ready">0</span>
+      </button>
+    </div>
+
+    <div class="queue-panel active" id="qpanel-pending">
+      <div id="queue-pending-list"><div class="queue-empty"><div class="queue-empty-icon">&#128461;</div>ยังไม่มีออเดอร์</div></div>
+    </div>
+    <div class="queue-panel" id="qpanel-cooking">
+      <div id="queue-cooking-list"><div class="queue-empty"><div class="queue-empty-icon">&#127859;</div>ไม่มีออเดอร์ที่กำลังทำ</div></div>
+    </div>
+    <div class="queue-panel" id="qpanel-ready">
+      <div id="queue-ready-list"><div class="queue-empty"><div class="queue-empty-icon">&#127869;</div>ไม่มีออเดอร์พร้อมเสิร์ฟ</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ FLOATING ORDER QUEUE BUTTON ══ -->
+<button class="btn-order-queue" onclick="openOrderQueue()">
+  &#127857; รายการออเดอร์
+  <span class="queue-badge" id="totalQueueBadge">0</span>
+</button>
 
 <!-- Confirm Dialog -->
 <div id="confirm-overlay">
@@ -1700,32 +2082,299 @@ function saveStaff(i) {
 }
 
 /* ══════════════════════════════════════
+   CUSTOMER + ORDER MANAGEMENT
+══════════════════════════════════════ */
+// In-memory stores
+let savedCustomers = JSON.parse(localStorage.getItem('cc_customers') || '[]');
+let orderQueue = []; // { id, customer, items, total, status:'pending'|'cooking'|'ready', time, sender }
+let completedOrders = []; // moved to history
+let _pendingItemName = null;
+let _pendingItemPrice = null;
+let _pendingSubmitOrder = false; // flag: came from sendOrder
+
+function saveCustomers() {
+  localStorage.setItem('cc_customers', JSON.stringify(savedCustomers));
+}
+
+/* Open customer modal when adding first item */
+function openCustomerModal(fromSendOrder) {
+  _pendingSubmitOrder = fromSendOrder || false;
+  const overlay = document.getElementById('customer-modal-overlay');
+  overlay.classList.add('open');
+  const inp = document.getElementById('customerNameInput');
+  inp.value = window._currentCustomer || '';
+  inp.focus();
+  filterCustomerSuggestions();
+}
+
+function closeCustomerModal() {
+  document.getElementById('customer-modal-overlay').classList.remove('open');
+  document.getElementById('customerSuggestions').innerHTML = '';
+  _pendingItemName = null;
+  _pendingItemPrice = null;
+  _pendingSubmitOrder = false;
+}
+
+function filterCustomerSuggestions() {
+  const val = document.getElementById('customerNameInput').value.trim().toLowerCase();
+  const box = document.getElementById('customerSuggestions');
+  if (!val) { box.innerHTML = ''; return; }
+  const matches = savedCustomers.filter(c => c.toLowerCase().includes(val));
+  if (matches.length === 0) { box.innerHTML = ''; return; }
+  box.innerHTML = matches.slice(0, 6).map(c =>
+    `<div class="suggestion-item" onclick="selectSuggestion('${c.replace(/'/g,"\\'")}')">&#x1F464; ${c}</div>`
+  ).join('');
+}
+
+function selectSuggestion(name) {
+  document.getElementById('customerNameInput').value = name;
+  document.getElementById('customerSuggestions').innerHTML = '';
+}
+
+function handleCustomerKey(e) {
+  if (e.key === 'Enter') confirmCustomerAndSend();
+  if (e.key === 'Escape') closeCustomerModal();
+}
+
+function confirmCustomerAndSend() {
+  const name = document.getElementById('customerNameInput').value.trim();
+  if (!name) { showToast('กรุณากรอกชื่อลูกค้า', true); return; }
+  // Save customer
+  if (!savedCustomers.includes(name)) {
+    savedCustomers.push(name);
+    saveCustomers();
+  }
+  window._currentCustomer = name;
+  closeCustomerModal();
+
+  if (_pendingSubmitOrder) {
+    // dispatch actual send
+    _doSendOrder(name);
+  } else if (_pendingItemName) {
+    // add item after setting customer
+    const iname = _pendingItemName;
+    const iprice = _pendingItemPrice;
+    _pendingItemName = null; _pendingItemPrice = null;
+    _addItemDirect(iname, iprice);
+  }
+}
+
+/* Called by menu card button */
+function addItem(name, price) {
+  if (!canUsePos()) { showToast('VISITOR ไม่สามารถสั่งอาหารได้', true); return; }
+  // If no customer set yet, ask first
+  if (!window._currentCustomer) {
+    _pendingItemName = name;
+    _pendingItemPrice = price;
+    openCustomerModal(false);
+    return;
+  }
+  _addItemDirect(name, price);
+}
+
+function _addItemDirect(name, price) {
+  if (!order[name]) order[name] = { price, qty: 0 };
+  order[name].qty++;
+  renderBill();
+}
+
+function removeItem(name) {
+  if (!canUsePos()) return;
+  if (!order[name]) return;
+  order[name].qty--;
+  if (order[name].qty <= 0) delete order[name];
+  renderBill();
+}
+
+/* ══════════════════════════════════════
    SEND ORDER
 ══════════════════════════════════════ */
 function sendOrder() {
   if (!canUsePos()) { showToast('VISITOR ไม่สามารถส่งออเดอร์ได้', true); return; }
   const entries = Object.entries(order).filter(([,v]) => v.qty > 0);
   if (entries.length === 0) { showToast('ยังไม่มีรายการออเดอร์', true); return; }
+  // Need customer name
+  if (!window._currentCustomer) {
+    _pendingSubmitOrder = true;
+    openCustomerModal(true);
+    return;
+  }
+  _doSendOrder(window._currentCustomer);
+}
+
+function _doSendOrder(customerName) {
+  const entries = Object.entries(order).filter(([,v]) => v.qty > 0);
+  if (entries.length === 0) return;
   const sub = entries.reduce((s,[,v]) => s + v.price * v.qty, 0);
   const total = Math.round(sub * (1 - discountPct / 100));
   const now = new Date().toLocaleTimeString('th-TH', { hour:'2-digit', minute:'2-digit' });
-  const sender = window.googleUser ? window.googleUser.name : 'Guest';
-  let text = '🍣 Central Cafe — Order\n';
-  text += '─────────────────\n';
-  entries.forEach(([name, v]) => {
-    text += `• ${name} ×${v.qty}  ${(v.price * v.qty).toLocaleString()} ฿\n`;
-  });
-  if (discountPct > 0) text += `ส่วนลด: ${discountPct}%\n`;
-  text += '─────────────────\n';
-  text += `รวม: ${total.toLocaleString()} บาท\n`;
-  text += `เวลา: ${now} | โดย: ${sender}`;
-  navigator.clipboard?.writeText(text).then(() => {
-    showToast('คัดลอกออเดอร์แล้ว — วางใน Line/Chat ได้เลย!');
-    addHistory('ส่งออเดอร์ยอด ' + total.toLocaleString() + ' บาท โดย ' + sender);
-  }).catch(() => {
-    showToast('ส่งออเดอร์: ' + total.toLocaleString() + ' บาท');
-  });
+  const sender = window.googleUser ? window.googleUser.name : 'Staff';
+
+  const queueItem = {
+    id: Date.now(),
+    customer: customerName,
+    items: entries.map(([name, v]) => ({ name, qty: v.qty, price: v.price })),
+    total,
+    discount: discountPct,
+    status: 'pending',
+    time: now,
+    sender
+  };
+
+  // Push to Firebase if available
+  if (window._fbDb) {
+    window._fbPush(window._fbRef(window._fbDb, 'orders'), queueItem);
+  }
+
+  orderQueue.push(queueItem);
+  renderOrderQueue();
+  updateQueueBadge();
+
+  // Clear bill
+  order = {};
+  discountPct = 0;
+  window._currentCustomer = null;
+  document.getElementById('discountLine').textContent = 'ส่วนลด: 0%';
+  document.getElementById('btnDiscountAdd').style.display = '';
+  document.getElementById('btnDiscountRemove').style.display = 'none';
+  renderBill();
+
+  showToast(`ส่งออเดอร์ของ ${customerName} แล้ว — รอเชฟรับ`);
+  addHistory(`ส่งออเดอร์: ${customerName} ยอด ${total.toLocaleString()} บาท โดย ${sender}`);
+
+  // Auto-open queue panel
+  openOrderQueue();
+  switchQueueTab('pending', document.querySelector('.queue-tab[data-qtab="pending"]'));
 }
+
+/* ══════════════════════════════════════
+   ORDER QUEUE UI
+══════════════════════════════════════ */
+function openOrderQueue() {
+  document.getElementById('order-queue-overlay').classList.add('open');
+  renderOrderQueue();
+}
+function closeOrderQueue() {
+  document.getElementById('order-queue-overlay').classList.remove('open');
+}
+function queueOverlayClick(e) {
+  if (e.target === document.getElementById('order-queue-overlay')) closeOrderQueue();
+}
+function switchQueueTab(tab, btn) {
+  document.querySelectorAll('.queue-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.queue-panel').forEach(p => p.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  const panel = document.getElementById('qpanel-' + tab);
+  if (panel) panel.classList.add('active');
+}
+
+function updateQueueBadge() {
+  const total = orderQueue.filter(o => o.status !== 'done').length;
+  document.getElementById('totalQueueBadge').textContent = total;
+  const pending = orderQueue.filter(o => o.status === 'pending').length;
+  const cooking = orderQueue.filter(o => o.status === 'cooking').length;
+  const ready = orderQueue.filter(o => o.status === 'ready').length;
+  document.getElementById('cnt-pending').textContent = pending;
+  document.getElementById('cnt-cooking').textContent = cooking;
+  document.getElementById('cnt-ready').textContent = ready;
+}
+
+function renderOrderQueue() {
+  updateQueueBadge();
+  renderQueuePanel('pending', 'queue-pending-list', '&#128461; ยังไม่มีออเดอร์',
+    o => `<button class="order-action-btn btn-accept" onclick="acceptOrder(${o.id})">&#x1F44C; รับออเดอร์</button>`
+  );
+  renderQueuePanel('cooking', 'queue-cooking-list', '&#127859; ไม่มีออเดอร์ที่กำลังทำ',
+    o => `<button class="order-action-btn btn-done-cooking" onclick="doneCooking(${o.id})">&#x2705; ทำเสร็จแล้ว</button>`
+  );
+  renderQueuePanel('ready', 'queue-ready-list', '&#127869; ไม่มีออเดอร์พร้อมเสิร์ฟ',
+    o => `<button class="order-action-btn btn-served" onclick="orderServed(${o.id})">&#127869; เสิร์ฟแล้ว</button>`
+  );
+}
+
+function renderQueuePanel(status, containerId, emptyMsg, actionFn) {
+  const list = orderQueue.filter(o => o.status === status);
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  if (list.length === 0) {
+    el.innerHTML = `<div class="queue-empty"><div class="queue-empty-icon" style="font-size:32px">&#127857;</div>${emptyMsg}</div>`;
+    return;
+  }
+  el.innerHTML = list.map(o => {
+    const itemTags = o.items.map(i =>
+      `<span class="order-card-item-tag">${i.name} x${i.qty}</span>`
+    ).join('');
+    const disc = o.discount > 0 ? ` (ลด ${o.discount}%)` : '';
+    return `
+      <div class="order-card">
+        <div class="order-card-header">
+          <div>
+            <div class="order-card-customer">&#x1F464; ${o.customer}</div>
+            <div class="order-card-meta">โดย ${o.sender}${disc}</div>
+          </div>
+          <div class="order-card-time">${o.time}</div>
+        </div>
+        <div class="order-card-items">${itemTags}</div>
+        <div class="order-card-footer">
+          <div class="order-card-total">${o.total.toLocaleString()} ฿</div>
+          <div class="order-card-actions">${actionFn(o)}</div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function acceptOrder(id) {
+  const o = orderQueue.find(x => x.id === id);
+  if (!o) return;
+  o.status = 'cooking';
+  if (window._fbDb) { /* sync status */ }
+  renderOrderQueue();
+  showToast(`รับออเดอร์ของ ${o.customer} แล้ว — กำลังทำ`);
+}
+
+function doneCooking(id) {
+  const o = orderQueue.find(x => x.id === id);
+  if (!o) return;
+  o.status = 'ready';
+  if (window._fbDb) { /* sync status */ }
+  renderOrderQueue();
+  showToast(`ออเดอร์ ${o.customer} พร้อมเสิร์ฟแล้ว!`);
+}
+
+function orderServed(id) {
+  const idx = orderQueue.findIndex(x => x.id === id);
+  if (idx === -1) return;
+  const o = orderQueue[idx];
+  o.status = 'done';
+  orderQueue.splice(idx, 1);
+  completedOrders.unshift(o); // newest first
+  renderOrderQueue();
+  renderOrderHistory();
+  showToast(`เสิร์ฟออเดอร์ ${o.customer} เรียบร้อย!`);
+  addHistory(`เสิร์ฟออเดอร์: ${o.customer} ยอด ${o.total.toLocaleString()} บาท`);
+}
+
+function renderOrderHistory() {
+  const el = document.getElementById('orderHistoryContainer');
+  if (!el) return;
+  if (completedOrders.length === 0) {
+    el.innerHTML = '<div class="history-empty">ยังไม่มีประวัติออเดอร์</div>';
+    return;
+  }
+  el.innerHTML = completedOrders.map(o => {
+    const itemStr = o.items.map(i => `${i.name} x${i.qty}`).join(', ');
+    return `
+      <div class="order-history-item">
+        <div class="order-history-header">
+          <div class="order-history-customer">&#x1F464; ${o.customer}</div>
+          <div class="order-history-time">${o.time}</div>
+        </div>
+        <div class="order-history-items">${itemStr}</div>
+        <div class="order-history-total">${o.total.toLocaleString()} ฿</div>
+      </div>`;
+  }).join('');
+}
+
 
 /* ══════════════════════════════════════
    INIT
