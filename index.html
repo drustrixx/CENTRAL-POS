@@ -888,6 +888,64 @@ body.staff-no-admin .hdr-btn-admin {
   pointer-events: none;
 }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ── Confirm Dialog ── */
+#confirm-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.75);
+  z-index: 500;
+  align-items: center;
+  justify-content: center;
+}
+#confirm-overlay.open { display: flex; }
+.confirm-box {
+  background: #1a1209;
+  border: 1px solid #f1c40f55;
+  border-radius: 16px;
+  padding: 28px 28px 22px;
+  width: 100%;
+  max-width: 360px;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0,0,0,.7);
+  animation: confirmPop .2s cubic-bezier(.34,1.4,.64,1);
+}
+@keyframes confirmPop {
+  from { transform: scale(.85); opacity: 0; }
+  to   { transform: scale(1);   opacity: 1; }
+}
+.confirm-icon { font-size: 36px; margin-bottom: 12px; }
+.confirm-title {
+  font-family: 'Cinzel', serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: #f1c40f;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+}
+.confirm-msg {
+  font-size: 13px;
+  color: #c8b896;
+  line-height: 1.6;
+  margin-bottom: 22px;
+}
+.confirm-msg strong { color: #f0e8cc; }
+.confirm-btns { display: flex; gap: 10px; }
+.confirm-btns button {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+  font-family: 'Prompt', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity .15s;
+}
+.confirm-btns button:hover { opacity: .85; }
+.btn-confirm-cancel { background: #2d1e06; color: #8a7450; border: 1px solid #3d2e0e !important; }
+.btn-confirm-ok { background: #991b1b; color: #fff; }
 </style>
 </head>
 <body>
@@ -1019,10 +1077,47 @@ body.staff-no-admin .hdr-btn-admin {
 <!-- Toast -->
 <div class="toast" id="toast"></div>
 
+<!-- Confirm Dialog -->
+<div id="confirm-overlay">
+  <div class="confirm-box">
+    <div class="confirm-icon" id="confirmIcon">⚠️</div>
+    <div class="confirm-title" id="confirmTitle">ยืนยันการดำเนินการ</div>
+    <div class="confirm-msg" id="confirmMsg"></div>
+    <div class="confirm-btns">
+      <button class="btn-confirm-cancel" onclick="closeConfirm()">ยกเลิก</button>
+      <button class="btn-confirm-ok" id="confirmOkBtn" onclick="doConfirm()">ยืนยัน ลบ</button>
+    </div>
+  </div>
+</div>
+
 <script>
 /* ══════════════════════════════════════
-   DATA
+   CONFIRM DIALOG
 ══════════════════════════════════════ */
+let _confirmCallback = null;
+
+function showConfirm({ icon = '🗑️', title = 'ยืนยันการลบ', msg, okLabel = 'ยืนยัน ลบ', onOk }) {
+  document.getElementById('confirmIcon').textContent   = icon;
+  document.getElementById('confirmTitle').textContent  = title;
+  document.getElementById('confirmMsg').innerHTML      = msg;
+  document.getElementById('confirmOkBtn').textContent  = okLabel;
+  _confirmCallback = onOk;
+  document.getElementById('confirm-overlay').classList.add('open');
+}
+function doConfirm() {
+  closeConfirm();
+  if (typeof _confirmCallback === 'function') _confirmCallback();
+}
+function closeConfirm() {
+  document.getElementById('confirm-overlay').classList.remove('open');
+  _confirmCallback = null;
+}
+// Close on backdrop click
+document.getElementById('confirm-overlay').addEventListener('click', function(e) {
+  if (e.target === this) closeConfirm();
+});
+
+
 const menuCategories = [
   {
     icon: '🍣',
@@ -1295,13 +1390,21 @@ function deleteStaff(i) {
   if (!canEditAdmin()) { showToast('ไม่มีสิทธิ์ลบ', true); return; }
   const s = staffList[i];
   if (roleRank(s.role) <= roleRank(myRole())) { showToast('ไม่สามารถลบคนที่ยศสูงกว่าหรือเท่ากับตัวเองได้', true); return; }
-  const name = s.name;
-  staffList.splice(i, 1);
-  addHistory('ลบพนักงาน: ' + name);
-  renderStaff();
-  renderRanks();
-  renderPositions();
-  showToast('ลบ ' + name + ' แล้ว');
+  showConfirm({
+    icon: '👤',
+    title: 'ลบพนักงาน',
+    msg: `คุณต้องการลบ <strong>${s.name}</strong> (${s.role}) ออกจากระบบ?<br><span style="color:#991b1b;font-size:12px">การดำเนินการนี้ไม่สามารถย้อนกลับได้</span>`,
+    okLabel: '🗑️ ยืนยัน ลบ',
+    onOk: () => {
+      const name = s.name;
+      staffList.splice(i, 1);
+      addHistory('ลบพนักงาน: ' + name);
+      renderStaff();
+      renderRanks();
+      renderPositions();
+      showToast('ลบ ' + name + ' แล้ว');
+    }
+  });
 }
 
 /* — RANKS — */
@@ -1368,15 +1471,24 @@ function deletePosition(i) {
   if (!['CEO','CO CEO'].includes(myRole())) { showToast('เฉพาะ CEO และ CO CEO เท่านั้นที่ลบตำแหน่งได้', true); return; }
   if (roleRank(positions[i].name) <= roleRank(myRole())) { showToast('ไม่สามารถลบตำแหน่งที่สูงกว่าหรือเท่ากับตัวเองได้', true); return; }
   const pos = positions[i];
-  const name = pos.name;
-  if (window._fbDb && pos.id) {
-    window._fbRemove(window._fbRef(window._fbDb, `positions/${pos.id}`));
-  } else {
-    positions.splice(i, 1);
-    renderPositions();
-  }
-  addHistory('ลบตำแหน่ง: ' + name);
-  showToast('ลบตำแหน่ง ' + name + ' แล้ว');
+  const count = staffList.filter(s => s.role === pos.name).length;
+  showConfirm({
+    icon: '📋',
+    title: 'ลบตำแหน่ง',
+    msg: `คุณต้องการลบตำแหน่ง <strong style="color:${pos.color}">${pos.name}</strong> ออกจากระบบ?${count > 0 ? `<br><span style="color:#f0a050;font-size:12px">⚠️ มีพนักงาน ${count} คนที่ใช้ตำแหน่งนี้อยู่</span>` : ''}<br><span style="color:#991b1b;font-size:12px">การดำเนินการนี้ไม่สามารถย้อนกลับได้</span>`,
+    okLabel: '🗑️ ยืนยัน ลบ',
+    onOk: () => {
+      const name = pos.name;
+      if (window._fbDb && pos.id) {
+        window._fbRemove(window._fbRef(window._fbDb, `positions/${pos.id}`));
+      } else {
+        positions.splice(i, 1);
+        renderPositions();
+      }
+      addHistory('ลบตำแหน่ง: ' + name);
+      showToast('ลบตำแหน่ง ' + name + ' แล้ว');
+    }
+  });
 }
 
 /* — HISTORY — */
