@@ -1463,20 +1463,7 @@ body.staff-no-admin .hdr-btn-admin {
         <div id="visitorSearchResults" style="display:flex;flex-direction:column;gap:8px;max-height:200px;overflow-y:auto;"></div>
       </div>
 
-      <div class="panel-section-title" style="margin-top:4px">✦ เพิ่มพนักงานใหม่ (manual)</div>
-      <div class="add-staff-form" style="border:none;background:transparent;padding:0">
-        <div class="form-row">
-          <div class="form-group">
-            <label>ชื่อ</label>
-            <input type="text" id="newStaffName" placeholder="ชื่อจริง">
-          </div>
-          <div class="form-group">
-            <label>นามสกุล</label>
-            <input type="text" id="newStaffSurname" placeholder="นามสกุล">
-          </div>
-        </div>
-        <button class="btn-add-staff" onclick="addStaff()">✓ เพิ่มพนักงาน</button>
-      </div>
+
 
       <div class="panel-section-title">✦ รายชื่อพนักงาน</div>
       <div class="staff-list" id="staffList"></div>
@@ -1929,14 +1916,13 @@ function renderStaff() {
     // Can only edit someone whose rank is strictly lower than mine
     const canEditThis = canEdit && !isTop(s.role) && roleRank(s.role) > myRank;
     // Roles available to assign = only roles strictly below my own rank (not equal), excluding VISITOR
-    const allowedRoles = positions.filter(p => roleRank(p.name) > myRank && p.name !== 'VISITOR');
+    const allowedRoles = positions.filter(p => roleRank(p.name) > myRank); // รวม VISITOR ด้วย
     const actions = !canEditThis
       ? `<span class="view-only-text">ดูอย่างเดียว</span>`
       : `<select class="staff-role-select" id="sel-${safeUid}" data-uid="${safeUid}">
            ${allowedRoles.map(p=>`<option${s.role===p.name?' selected':''}>${p.name}</option>`).join('')}
          </select>
-         <button class="btn-save" onclick="saveStaffByUid('${safeUid}')">บันทึก</button>
-         <button class="btn-reset-visitor" onclick="resetToVisitorByUid('${safeUid}')">→ Visitor</button>`;
+         <button class="btn-save" onclick="saveStaffByUid('${safeUid}')">บันทึก</button>`;
     return `
       <div class="staff-card">
         <div class="staff-avatar">${initials}</div>
@@ -1981,7 +1967,8 @@ function saveStaffByUid(uid) {
   if (!s) { showToast('ไม่พบข้อมูลพนักงาน', true); return; }
   const sel = document.getElementById('sel-' + uid);
   const newRole = sel ? sel.value : s.role;
-  if (roleRank(newRole) <= roleRank(myRole())) {
+  // VISITOR อนุญาตเสมอ (reset), role อื่นต้องต่ำกว่าตัวเอง
+  if (newRole !== 'VISITOR' && roleRank(newRole) <= roleRank(myRole())) {
     showToast('ไม่สามารถกำหนดยศที่สูงกว่าหรือเท่ากับตัวเองได้', true);
     renderStaff(); return;
   }
