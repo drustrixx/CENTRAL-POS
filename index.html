@@ -105,11 +105,12 @@ body { font-family: 'Prompt', sans-serif; background: #0a0805; color: #fff; min-
   min-width: 0;
 }
 .pos-header-logo {
-  width: 40px;
-  height: 40px;
+  width: 46px;
+  height: 46px;
   object-fit: cover;
-  border-radius: 8px;
+  border-radius: 50%;
   flex-shrink: 0;
+  border: 1px solid #d4af3766;
 }
 .pos-header-titles { min-width: 0; }
 .pos-header-titles h1 {
@@ -183,7 +184,7 @@ body { font-family: 'Prompt', sans-serif; background: #0a0805; color: #fff; min-
 .badge-set { background: #8e44ad; color: #fff; }
 .menu-card-img-wrap {
   width: 100%;
-  height: 100px;
+  height: 130px;
   background: #141008;
   overflow: hidden;
   display: flex;
@@ -194,17 +195,22 @@ body { font-family: 'Prompt', sans-serif; background: #0a0805; color: #fff; min-
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center;
+  object-position: center 30%;
   display: block;
   backface-visibility: hidden;
   transform: translateZ(0);
-  filter: contrast(1.06) saturate(1.08) brightness(1.02);
+  filter: contrast(1.06) saturate(1.1) brightness(1.03);
+  transition: transform .3s ease;
+}
+.menu-card:hover .menu-card-img-wrap img {
+  transform: scale(1.05);
 }
 .menu-card-img-wrap img.img-fit-contain {
-  object-fit: contain;
-  padding: 6px 8px;
-  transform: translateZ(0) scale(0.82);
-  filter: contrast(1.08) saturate(1.1) brightness(1.03);
+  object-fit: cover;
+  object-position: center center;
+  padding: 0;
+  transform: translateZ(0);
+  filter: contrast(1.06) saturate(1.1) brightness(1.03);
 }
 .menu-card-body { padding: 10px 12px 6px; }
 .menu-card-body h3 { font-size: 13px; font-weight: 600; color: #f1c40f; margin-bottom: 3px; }
@@ -859,7 +865,7 @@ body.staff-no-admin .hdr-btn-admin {
 <div id="pos-page">
   <header class="pos-header">
     <div class="pos-header-brand">
-      <img src="assets/logo.png" alt="Central Cafe" class="pos-header-logo">
+      <img src="image6.png" alt="Central Cafe" class="pos-header-logo">
       <div class="pos-header-titles">
         <h1>CENTRAL CAFE</h1>
         <p>Japanese Dining POS System</p>
@@ -976,7 +982,7 @@ body.staff-no-admin .hdr-btn-admin {
 <div id="google-popup-overlay" onclick="googlePopupOverlayClick(event)">
   <div class="google-popup">
     <button class="google-popup-close" onclick="closeGooglePopup()">✕</button>
-    <img class="google-popup-logo" src="assets/logo.png" alt="Central Cafe">
+    <img class="google-popup-logo" src="image6.png" alt="Central Cafe">
     <h3>Central Cafe Login</h3>
     <p>เข้าสู่ระบบด้วยบัญชี Google ของคุณ</p>
     <button class="google-signin-btn" onclick="simulateGoogleLogin()">
@@ -1001,11 +1007,11 @@ const menuCategories = [
     badge: 'อาหาร',
     badgeClass: 'badge-food',
     items: [
-      { name:'Salmon Sashimi',  price:220, img:'assets/salmon-sashimi.png' },
-      { name:'Tuna Sashimi',    price:220, img:'assets/tuna-sashimi.png' },
-      { name:'Premium Unagi',   price:220, img:'assets/premium-unagi.png' },
-      { name:'Grand Maguro',    price:220, img:'assets/grand-maguro.png' },
-      { name:'Salmon Nigiri',   price:220, img:'assets/salmon-nigiri.png' },
+      { name:'Salmon Sashimi',  price:220, img:'image4.png' },
+      { name:'Tuna Sashimi',    price:220, img:'image3.png' },
+      { name:'Premium Unagi',   price:220, img:'image2.png' },
+      { name:'Grand Maguro',    price:220, img:'image1.png' },
+      { name:'Salmon Nigiri',   price:220, img:'image.png' },
     ]
   },
   {
@@ -1014,9 +1020,9 @@ const menuCategories = [
     badge: 'เครื่องดื่ม',
     badgeClass: 'badge-drink',
     items: [
-      { name:'Matcha',          price:180, img:'assets/matcha.png' },
-      { name:'Lemon Shine',     price:180, img:'assets/lemon-shine.png' },
-      { name:'Lychee Dream',    price:180, img:'assets/lychee-dream.png' },
+      { name:'Matcha',          price:180, img:'image6.png' },
+      { name:'Lemon Shine',     price:180, img:'image7.png' },
+      { name:'Lychee Dream',    price:180, img:'image5.png' },
     ]
   },
   {
@@ -1025,8 +1031,8 @@ const menuCategories = [
     badge: 'เซ็ต',
     badgeClass: 'badge-set',
     items: [
-      { name:'Signature Set',   price:1500, img:'assets/signature-set.png', imgFit:'cover' },
-      { name:'Premier Set',     price:1500, img:'assets/premier-set.png', imgFit:'contain' },
+      { name:'Signature Set',   price:1500, img:'1782417037092_image.png', imgFit:'cover' },
+      { name:'Premier Set',     price:1500, img:'1782417040415_image.png', imgFit:'cover' },
     ]
   }
 ];
