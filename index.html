@@ -49,8 +49,11 @@
       // Look up role from DB: /users/<uid>/role
       const snap = await get(ref(db, `users/${user.uid}`));
       let role = 'VISITOR';
+      let fullName = null;
       if (snap.exists()) {
-        role = snap.val().role || 'VISITOR';
+        const u = snap.val();
+        role = u.role || 'VISITOR';
+        fullName = u.fullName || null;
       } else {
         // First-time login — create record with VISITOR role
         await set(ref(db, `users/${user.uid}`), {
@@ -61,14 +64,19 @@
       }
       window.googleUser.role = role;
       window.googleUser.uid  = user.uid;
+      window.googleUser.fullName = fullName;
+      // Display the real full name everywhere once it's set; otherwise fall back to the Google name
+      if (fullName) window.googleUser.name = fullName;
 
       // Defer so page scripts are guaranteed loaded
       setTimeout(() => {
         if (typeof updateHeaderBar   === 'function') updateHeaderBar();
-        if (typeof showToast         === 'function') showToast('เข้าสู่ระบบสำเร็จ: ' + user.displayName);
-        if (typeof addHistory        === 'function') addHistory('Login: ' + user.displayName + ' (' + user.email + ') | Role: ' + role);
+        if (typeof showToast         === 'function') showToast('เข้าสู่ระบบสำเร็จ: ' + window.googleUser.name);
+        if (typeof addHistory        === 'function') addHistory('Login: ' + window.googleUser.name + ' (' + user.email + ') | Role: ' + role);
         if (typeof syncStaffFromDB   === 'function') syncStaffFromDB();
         if (typeof syncPositionsFromDB === 'function') syncPositionsFromDB();
+        // First login ever (no fullName saved yet) — ask for it
+        if (!fullName && typeof openFullNameModal === 'function') openFullNameModal();
       }, 100);
 
     } else {
@@ -1039,6 +1047,17 @@ body.staff-no-admin .hdr-btn-admin {
 .btn-customer-cancel { background: #2d1e06; color: #8a7450; border: 1px solid #3d2e0e !important; }
 .btn-customer-ok { background: #f1c40f; color: #0a0805; }
 
+#fullname-modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.8);
+  z-index: 700;
+  align-items: center;
+  justify-content: center;
+}
+#fullname-modal-overlay.open { display: flex; }
+
 /* ══════════════════════════════════════
    ORDER QUEUE PANEL (BOTTOM-SHEET OVERLAY)
 ══════════════════════════════════════ */
@@ -1458,6 +1477,21 @@ body.staff-no-admin .hdr-btn-admin {
     <div class="customer-modal-btns">
       <button class="btn-customer-cancel" onclick="closeCustomerModal()">ยกเลิก</button>
       <button class="btn-customer-ok" onclick="confirmCustomerAndSend()">📤 ยืนยันและส่งออเดอร์</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── FULL NAME ONBOARDING MODAL (first login only) ── -->
+<div id="fullname-modal-overlay">
+  <div class="customer-modal">
+    <h3>📝 กรอกชื่อ-นามสกุล</h3>
+    <p>กรุณากรอกชื่อ-นามสกุลจริงของคุณ เพื่อใช้แสดงในระบบ (กรอกครั้งเดียว)</p>
+    <div class="customer-input-wrap">
+      <input type="text" id="fullNameInput" placeholder="ชื่อ นามสกุล" autocomplete="off"
+        onkeydown="handleFullNameKey(event)">
+    </div>
+    <div class="customer-modal-btns">
+      <button class="btn-customer-ok" style="flex:1" onclick="confirmFullName()">✅ บันทึกชื่อ</button>
     </div>
   </div>
 </div>
@@ -1986,7 +2020,7 @@ function syncStaffFromDB() {
     const data = snapshot.val();
     staffList = Object.entries(data).map(([uid, u]) => ({
       uid,
-      name:  u.name  || 'Unknown',
+      name:  u.fullName || u.name  || 'Unknown',
       email: u.email || '',
       role:  u.role  || 'VISITOR'
     }));
@@ -2151,6 +2185,47 @@ function closeCustomerModal() {
   _pendingItemName = null;
   _pendingItemPrice = null;
   _pendingSubmitOrder = false;
+}
+
+/* — FULL NAME ONBOARDING (first login only) — */
+function openFullNameModal() {
+  const overlay = document.getElementById('fullname-modal-overlay');
+  if (!overlay) return;
+  overlay.classList.add('open');
+  const inp = document.getElementById('fullNameInput');
+  inp.value = '';
+  setTimeout(() => inp.focus(), 50);
+}
+
+function handleFullNameKey(e) {
+  if (e.key === 'Enter') confirmFullName();
+}
+
+function confirmFullName() {
+  const inp = document.getElementById('fullNameInput');
+  const name = inp.value.trim();
+  if (!name) { showToast('กรุณากรอกชื่อ-นามสกุล', true); return; }
+  if (!window.googleUser || !window.googleUser.uid) { showToast('ยังไม่ได้เข้าสู่ระบบ', true); return; }
+
+  const uid = window.googleUser.uid;
+  if (window._fbDb) {
+    window._fbSet(window._fbRef(window._fbDb, `users/${uid}/fullName`), name)
+      .then(() => {
+        window.googleUser.fullName = name;
+        window.googleUser.name = name;
+        document.getElementById('fullname-modal-overlay').classList.remove('open');
+        showToast(`บันทึกชื่อแล้ว: ${name}`);
+        addHistory(`ตั้งชื่อ-นามสกุล: ${name}`);
+        if (typeof updateHeaderBar === 'function') updateHeaderBar();
+        if (typeof syncStaffFromDB === 'function') syncStaffFromDB();
+      })
+      .catch(err => {
+        console.error('Firebase write failed (fullName):', err);
+        showToast('บันทึกชื่อไม่สำเร็จ: ' + err.message, true);
+      });
+  } else {
+    showToast('Firebase ยังไม่พร้อม กรุณารอสักครู่แล้วลองใหม่', true);
+  }
 }
 
 function filterCustomerSuggestions() {
