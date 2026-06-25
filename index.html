@@ -68,16 +68,22 @@
       // Display the real full name everywhere once it's set; otherwise fall back to the Google name
       if (fullName) window.googleUser.name = fullName;
 
-      // Defer so page scripts are guaranteed loaded
-      setTimeout(() => {
-        if (typeof updateHeaderBar   === 'function') updateHeaderBar();
+      // Defer so page scripts are guaranteed loaded (poll briefly — module script
+      // can fire before the main script has finished parsing on slow loads)
+      (function waitForPageScriptsThenInit(retries) {
+        if (typeof updateHeaderBar !== 'function') {
+          if (retries <= 0) return;
+          setTimeout(() => waitForPageScriptsThenInit(retries - 1), 100);
+          return;
+        }
+        updateHeaderBar();
         if (typeof showToast         === 'function') showToast('เข้าสู่ระบบสำเร็จ: ' + window.googleUser.name);
         if (typeof addHistory        === 'function') addHistory('Login: ' + window.googleUser.name + ' (' + user.email + ') | Role: ' + role);
         if (typeof syncStaffFromDB   === 'function') syncStaffFromDB();
         if (typeof syncPositionsFromDB === 'function') syncPositionsFromDB();
         // First login ever (no fullName saved yet) — ask for it
         if (!fullName && typeof openFullNameModal === 'function') openFullNameModal();
-      }, 100);
+      })(30);
 
     } else {
       // Signed out
@@ -2462,7 +2468,9 @@ function orderServed(id) {
     ts
   };
   if (window._fbDb) {
+    console.log('[orderServed] pushing to orders_history/' + weekKey, record);
     window._fbPush(window._fbRef(window._fbDb, `orders_history/${weekKey}`), record)
+      .then(ref => console.log('[orderServed] push succeeded, key=', ref.key))
       .catch(err => {
         console.error('Firebase write failed (orders_history):', err);
         showToast('บันทึกประวัติออเดอร์ลง Firebase ไม่สำเร็จ: ' + err.message, true);
@@ -2507,10 +2515,13 @@ function getRecentWeekKeys() {
    Loads orders_history, keeps only the 3 most recent week buckets in view,
    and deletes any bucket older than that directly from Firebase. */
 function syncOrderHistoryFromDB() {
-  if (!window._fbDb) return;
+  if (!window._fbDb) { console.warn('[orders_history] _fbDb not ready, skip sync'); return; }
+  console.log('[orders_history] attaching listener...');
   window._fbOnValue(window._fbRef(window._fbDb, 'orders_history'), (snapshot) => {
     const data = snapshot.val() || {};
+    console.log('[orders_history] snapshot received. exists=', snapshot.exists(), 'raw data=', data);
     const recentKeys = getRecentWeekKeys();
+    console.log('[orders_history] recentKeys=', recentKeys);
     const newHistoryByWeek = {};
 
     Object.keys(data).forEach(weekKey => {
@@ -2520,6 +2531,7 @@ function syncOrderHistoryFromDB() {
         records.sort((a, b) => (b.ts || 0) - (a.ts || 0)); // newest first
         newHistoryByWeek[weekKey] = records;
       } else {
+        console.log('[orders_history] removing stale week bucket:', weekKey);
         // Older than the 3-week window — remove permanently from Firebase
         window._fbRemove(window._fbRef(window._fbDb, `orders_history/${weekKey}`))
           .catch(err => console.error('Firebase cleanup failed:', err));
@@ -2527,6 +2539,7 @@ function syncOrderHistoryFromDB() {
     });
 
     historyByWeek = newHistoryByWeek;
+    console.log('[orders_history] final historyByWeek=', historyByWeek);
     renderOrderHistory();
   }, (err) => {
     console.error('Firebase read failed (orders_history):', err);
