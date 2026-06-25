@@ -8,7 +8,7 @@
 <!-- Firebase SDKs -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getAuth, signInWithPopup, signOut, GoogleAuthProvider, onAuthStateChanged }
+  import { getAuth, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, GoogleAuthProvider, onAuthStateChanged }
     from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
   import { getDatabase, ref, get, set, remove, push, onValue }
     from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
@@ -39,10 +39,23 @@
   window._fbOnValue  = onValue;
   window._fbProvider = provider;
   window._fbSignInWithPopup = signInWithPopup;
+  window._fbSignInWithRedirect = signInWithRedirect;
+  window._fbGetRedirectResult = getRedirectResult;
   window._fbSignOut  = signOut;
 
   // ── Auth state listener ──
-  onAuthStateChanged(auth, async (user) => {
+  // ── ดัก redirect result (สำหรับ GitHub Pages ที่ popup ถูก block) ──
+  getRedirectResult(auth).then(result => {
+    if (result && result.user) {
+      console.log('[Auth] redirect result user:', result.user.email);
+    }
+  }).catch(err => {
+    if (err.code !== 'auth/no-auth-event') {
+      console.warn('[Auth] getRedirectResult error:', err.message);
+    }
+  });
+
+    onAuthStateChanged(auth, async (user) => {
     if (user) {
       window.googleUser = { name: user.displayName, email: user.email, photoURL: user.photoURL };
 
@@ -2144,9 +2157,16 @@ function openGooglePopup() {
     }).catch(err => showToast('ออกจากระบบล้มเหลว: ' + err.message, true));
     return;
   }
-  window._fbSignInWithPopup(window._fbAuth, window._fbProvider).catch(err => {
-    showToast('Login ล้มเหลว: ' + err.message, true);
-  });
+  // ใช้ redirect แทน popup เพราะ GitHub Pages มี COOP header บล็อก popup
+  if (window._fbSignInWithRedirect) {
+    window._fbSignInWithRedirect(window._fbAuth, window._fbProvider).catch(err => {
+      showToast('Login ล้มเหลว: ' + err.message, true);
+    });
+  } else {
+    window._fbSignInWithPopup(window._fbAuth, window._fbProvider).catch(err => {
+      showToast('Login ล้มเหลว: ' + err.message, true);
+    });
+  }
 }
 
 function doSignOut() {
