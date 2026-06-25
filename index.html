@@ -1432,7 +1432,7 @@ body.staff-no-admin .hdr-btn-admin {
       </div>
 
       <div class="panel-section-title" style="margin-top:4px">✦ เพิ่มพนักงานใหม่ (manual)</div>
-      <div class="add-staff-form">
+      <div class="add-staff-form" style="border:none;background:transparent;padding:0">
         <div class="form-row">
           <div class="form-group">
             <label>ชื่อ</label>
@@ -1961,12 +1961,19 @@ function deleteStaff(i) {
     okLabel: '🗑️ ยืนยัน ลบ',
     onOk: () => {
       const name = s.name;
-      staffList.splice(i, 1);
+      // ลบออกจาก Firebase ด้วย (ถ้ามี uid)
+      if (s.uid && window._fbDb) {
+        window._fbRemove(window._fbRef(window._fbDb, `users/${s.uid}`))
+          .then(() => showToast('ลบ ' + name + ' แล้ว'))
+          .catch(err => showToast('ลบล้มเหลว: ' + err.message, true));
+      } else {
+        staffList.splice(i, 1);
+        renderStaff();
+        renderRanks();
+        renderPositions();
+        showToast('ลบ ' + name + ' แล้ว');
+      }
       addHistory('ลบพนักงาน: ' + name);
-      renderStaff();
-      renderRanks();
-      renderPositions();
-      showToast('ลบ ' + name + ' แล้ว');
     }
   });
 }
