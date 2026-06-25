@@ -812,6 +812,18 @@ body.staff-no-admin .hdr-btn-admin {
   font-size: 12px;
   outline: none;
 }
+.btn-reset-visitor {
+  padding: 5px 10px;
+  background: #3a2e00;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--muted);
+  font-family: 'Sarabun', sans-serif;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background .15s, color .15s;
+}
+.btn-reset-visitor:hover { background: #221B00; color: var(--accent2); }
 .btn-save {
   padding: 5px 12px;
   background: #2d8a4e;
@@ -1924,7 +1936,7 @@ function renderStaff() {
            ${allowedRoles.map(p=>`<option${s.role===p.name?' selected':''}>${p.name}</option>`).join('')}
          </select>
          <button class="btn-save" onclick="saveStaffByUid('${safeUid}')">บันทึก</button>
-         <button class="btn-del" onclick="deleteStaffByUid('${safeUid}')">ลบ</button>`;
+         <button class="btn-reset-visitor" onclick="resetToVisitorByUid('${safeUid}')">→ Visitor</button>`;
     return `
       <div class="staff-card">
         <div class="staff-avatar">${initials}</div>
@@ -2018,9 +2030,38 @@ function deleteStaffByUid(uid) {
   });
 }
 
-/* เก็บไว้ for backward-compat (ไม่ถูกเรียกแล้วหลังแก้ renderStaff) */
+/* Reset role กลับเป็น VISITOR — ย้ายคนกลับไปช่อง "ค้นหา Visitor & ให้ Role" */
+function resetToVisitorByUid(uid) {
+  if (!canEditAdmin()) { showToast('ไม่มีสิทธิ์แก้ไข', true); return; }
+  const s = _staffByUid(uid);
+  if (!s) { showToast('ไม่พบข้อมูลพนักงาน', true); return; }
+  if (roleRank(s.role) <= roleRank(myRole())) {
+    showToast('ไม่สามารถ Reset คนที่ยศสูงกว่าหรือเท่ากับตัวเองได้', true); return;
+  }
+  const snapName = s.name;
+  showConfirm({
+    icon: '🔄',
+    title: 'Reset เป็น Visitor',
+    msg: `ย้าย <strong>${snapName}</strong> กลับเป็น Visitor?<br><span style="color:#f0a050;font-size:12px">สามารถให้ยศใหม่ได้ภายหลัง</span>`,
+    okLabel: '✅ ยืนยัน',
+    onOk: () => {
+      if (uid && window._fbDb) {
+        window._fbSet(window._fbRef(window._fbDb, `users/${uid}/role`), 'VISITOR')
+          .then(() => showToast(snapName + ' กลับเป็น Visitor แล้ว'))
+          .catch(err => showToast('ล้มเหลว: ' + err.message, true));
+      } else {
+        s.role = 'VISITOR';
+        renderStaff(); renderRanks(); renderPositions(); renderVisitorSearch();
+        showToast(snapName + ' กลับเป็น Visitor แล้ว');
+      }
+      addHistory('Reset: ' + snapName + ' → VISITOR');
+    }
+  });
+}
+
+/* เก็บไว้ for backward-compat */
 function saveStaff(i) { const s = staffList[i]; if (s && s.uid) saveStaffByUid(s.uid); }
-function deleteStaff(i) { const s = staffList[i]; if (s && s.uid) deleteStaffByUid(s.uid); }
+function deleteStaff(i) { const s = staffList[i]; if (s && s.uid) resetToVisitorByUid(s.uid); }
 
 /* — RANKS — */
 function renderRanks() {
