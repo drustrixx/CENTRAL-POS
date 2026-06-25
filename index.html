@@ -1945,9 +1945,16 @@ function saveStaff(i) {
   if (!canEditAdmin()) { showToast('ไม่มีสิทธิ์แก้ไข', true); return; }
   const s = staffList[i];
   if (roleRank(s.role) <= roleRank(myRole())) { showToast('ไม่สามารถกำหนดยศที่สูงกว่าหรือเท่ากับตัวเองได้', true); renderStaff(); return; }
+  // Sync ขึ้น Firebase ถ้ามี uid
+  if (s.uid && window._fbDb) {
+    window._fbSet(window._fbRef(window._fbDb, `users/${s.uid}/role`), s.role)
+      .then(() => showToast('บันทึกแล้ว: ' + s.name + ' → ' + s.role))
+      .catch(err => showToast('บันทึกล้มเหลว: ' + err.message, true));
+  } else {
+    showToast('บันทึกแล้ว');
+  }
   addHistory('แก้ไขยศ: ' + s.name + ' → ' + s.role);
   renderStaff();
-  showToast('บันทึกแล้ว');
 }
 
 function deleteStaff(i) {
@@ -1961,19 +1968,21 @@ function deleteStaff(i) {
     okLabel: '🗑️ ยืนยัน ลบ',
     onOk: () => {
       const name = s.name;
-      // ลบออกจาก Firebase ด้วย (ถ้ามี uid)
+      // Reset role กลับเป็น VISITOR (ไม่ลบ user ออกจาก Firebase เพราะจะทำให้ลบไม่ได้เนื่องจาก Security Rules)
       if (s.uid && window._fbDb) {
-        window._fbRemove(window._fbRef(window._fbDb, `users/${s.uid}`))
-          .then(() => showToast('ลบ ' + name + ' แล้ว'))
+        window._fbSet(window._fbRef(window._fbDb, `users/${s.uid}/role`), 'VISITOR')
+          .then(() => {
+            showToast('ลบ ' + name + ' ออกจากพนักงานแล้ว (Reset เป็น Visitor)');
+          })
           .catch(err => showToast('ลบล้มเหลว: ' + err.message, true));
       } else {
-        staffList.splice(i, 1);
+        s.role = 'VISITOR';
         renderStaff();
         renderRanks();
         renderPositions();
-        showToast('ลบ ' + name + ' แล้ว');
+        showToast('ลบ ' + name + ' ออกจากพนักงานแล้ว');
       }
-      addHistory('ลบพนักงาน: ' + name);
+      addHistory('ลบพนักงาน: ' + name + ' → reset เป็น VISITOR');
     }
   });
 }
