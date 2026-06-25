@@ -1000,6 +1000,50 @@
   .pos-card-name{color:#f0e6c8;font-size:14px;}
   .pos-card-count{color:#9a8060;font-size:12px;}
 
+  /* ===== ROLE BADGES ===== */
+  .role-badge{
+    display:inline-flex;align-items:center;gap:4px;
+    font-size:0.65rem;font-weight:700;padding:3px 9px;
+    border-radius:999px;letter-spacing:0.5px;font-family:'Sarabun',sans-serif;white-space:nowrap;
+  }
+  .role-CEO     {background:rgba(255,215,0,.12);    color:#FFD700; border:1px solid rgba(255,215,0,.35);}
+  .role-COCEO   {background:rgba(217,79,79,.12);    color:#ef5350; border:1px solid rgba(217,79,79,.35);}
+  .role-MANAGER {background:rgba(74,144,217,.12);   color:#64b5f6; border:1px solid rgba(74,144,217,.3);}
+  .role-STAFF   {background:rgba(46,173,111,.12);   color:#66bb6a; border:1px solid rgba(46,173,111,.3);}
+  .role-PARTTIME{background:rgba(201,146,42,.12);   color:#ffa726; border:1px solid rgba(201,146,42,.3);}
+  .role-VISITOR {background:rgba(122,104,64,.12);   color:#9a8060; border:1px solid rgba(90,70,30,.4);}
+
+  .role-select-sm{
+    background:#1a1500;border:1px solid #3a2800;color:var(--gold);
+    border-radius:7px;padding:5px 8px;font-size:0.78rem;
+    font-family:'Sarabun',sans-serif;cursor:pointer;outline:none;transition:border-color .2s;
+  }
+  .role-select-sm:focus{border-color:var(--gold);}
+  .btn-save-sm{
+    background:#2E7D32;color:#fff;border:none;border-radius:7px;
+    padding:5px 11px;font-size:0.75rem;font-family:'Sarabun',sans-serif;
+    font-weight:700;cursor:pointer;transition:all .2s;white-space:nowrap;
+  }
+  .btn-save-sm:hover{opacity:.85;}
+  .btn-save-sm:disabled{opacity:.4;cursor:not-allowed;}
+  .readonly-role{color:#9a8060;font-size:0.72rem;font-style:italic;}
+  .staff-card-role{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:5px;}
+
+  .pos-color-dot{width:11px;height:11px;border-radius:50%;flex-shrink:0;display:inline-block;margin-right:6px;}
+  .pos-row{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid #141008;}
+  .pos-row:last-child{border-bottom:none;}
+  .pos-row-left{display:flex;align-items:center;gap:2px;}
+  .pos-row-name{font-size:0.9rem;font-weight:600;}
+
+  .rank-table-wrap{overflow-x:auto;}
+  .rank-table{width:100%;border-collapse:collapse;font-size:0.83rem;}
+  .rank-table th{color:#9a8060;font-size:0.68rem;letter-spacing:1px;text-transform:uppercase;padding:9px 12px;text-align:left;border-bottom:1px solid #2a1e00;}
+  .rank-table td{padding:10px 12px;border-bottom:1px solid #141008;vertical-align:middle;}
+  .rank-table tr:last-child td{border-bottom:none;}
+  .rank-table tr:hover td{background:#141008;}
+  .rank-name-cell{color:#f0e6c8;font-weight:600;font-size:0.88rem;}
+  .rank-email-cell{color:#9a8060;font-size:0.7rem;margin-top:2px;}
+
   /* history tab */
   .admin-hist-entry{
     background:#141008;border:1px solid #3a2800;border-radius:9px;
@@ -1033,10 +1077,7 @@
       <button class="btn-admin-panel" id="btnAdminPanel" onclick="openAdminPanel()" style="display:none">
         👑 Admin Panel
       </button>
-      <button class="btn-order-tab" onclick="openOrders()">
-        🧾 รายการออเดอร์
-        <span class="order-count-badge" id="orderCountBadge">0</span>
-      </button>
+
     </div>
   </div>
 
@@ -1143,6 +1184,7 @@
     </div>
     <div class="admin-tabs">
       <button class="admin-tab active" id="atab-staff" onclick="switchAdminTab('staff')">👤 พนักงาน</button>
+      <button class="admin-tab" id="atab-rank" onclick="switchAdminTab('rank')">👑 ยศ</button>
       <button class="admin-tab" id="atab-position" onclick="switchAdminTab('position')">🏷️ ตำแหน่ง</button>
       <button class="admin-tab" id="atab-history" onclick="switchAdminTab('history')">📜 ประวัติ</button>
     </div>
@@ -1151,11 +1193,19 @@
       <!-- TAB: พนักงาน -->
       <div class="admin-page active" id="apage-staff">
         <div class="staff-form">
-          <div class="staff-form-title">➕ เพิ่มพนักงาน</div>
+          <div class="staff-form-title">➕ เพิ่มพนักงานใหม่</div>
           <div class="staff-form-row">
             <input class="staff-input" id="newStaffName" placeholder="ชื่อพนักงาน" autocomplete="off">
             <select class="staff-select" id="newStaffPos">
               <option value="">-- เลือกตำแหน่ง --</option>
+            </select>
+            <select class="staff-select" id="newStaffRole">
+              <option value="VISITOR">⚪ Visitor</option>
+              <option value="PART TIME">🟡 Part Time</option>
+              <option value="STAFF">🟢 Staff</option>
+              <option value="MANAGER">🔵 Manager</option>
+              <option value="CO CEO">🔴 CO CEO</option>
+              <option value="CEO">👑 CEO</option>
             </select>
             <button class="staff-add-btn" onclick="addStaff()">+ เพิ่ม</button>
           </div>
@@ -1165,16 +1215,39 @@
         </div>
       </div>
 
+      <!-- TAB: ยศ -->
+      <div class="admin-page" id="apage-rank">
+        <div style="padding:6px 0 14px;color:#9a8060;font-size:0.8rem;line-height:1.6">
+          จัดการยศของพนักงานแต่ละคน — ยศกำหนดสิทธิ์การเข้าถึงระบบ
+        </div>
+        <div class="rank-table-wrap">
+          <table class="rank-table">
+            <thead>
+              <tr>
+                <th>พนักงาน</th>
+                <th>ยศปัจจุบัน</th>
+                <th>เปลี่ยนยศ</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="rankTableBody">
+              <tr><td colspan="4" style="color:#9a8060;padding:24px;text-align:center">กำลังโหลด...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       <!-- TAB: ตำแหน่ง -->
       <div class="admin-page" id="apage-position">
         <div class="staff-form">
           <div class="staff-form-title">➕ เพิ่มตำแหน่ง</div>
           <div class="staff-form-row">
             <input class="staff-input" id="newPosName" placeholder="ชื่อตำแหน่ง" autocomplete="off">
+            <input type="color" id="newPosColor" value="#c9a84c" title="สีตำแหน่ง" style="width:38px;height:38px;border-radius:8px;border:1px solid #3a2800;background:#1a1500;cursor:pointer;padding:3px;flex-shrink:0">
             <button class="staff-add-btn" onclick="addPosition()">+ เพิ่ม</button>
           </div>
         </div>
-        <div class="pos-list" id="positionList">
+        <div class="pos-list" id="positionList" style="background:#141008;border:1px solid #2a1e00;border-radius:10px;overflow:hidden;margin-top:4px">
           <div class="staff-empty">กำลังโหลด...</div>
         </div>
       </div>
@@ -1674,11 +1747,12 @@ window.closeAdminPanel = function(){
   document.getElementById('adminOverlay').style.display = 'none';
 };
 window.switchAdminTab = function(tab){
-  ['staff','position','history'].forEach(t => {
+  ['staff','rank','position','history'].forEach(t => {
     document.getElementById('atab-'+t).classList.toggle('active', t===tab);
     document.getElementById('apage-'+t).classList.toggle('active', t===tab);
   });
   if(tab==='history') renderAdminHistory();
+  if(tab==='rank') renderRankTable();
 };
 
 // ===== STAFF =====
@@ -1697,6 +1771,8 @@ function startAdminListeners(){
   onValue(ref(db,'staff'), snap => {
     _staffData = snap.val() || {};
     renderStaffList();
+    // refresh ยศ table ถ้า tab นั้นเปิดอยู่
+    if(document.getElementById('apage-rank')?.classList.contains('active')) renderRankTable();
   });
 }
 
@@ -1712,6 +1788,14 @@ function renderPositionSelect(){
   });
 }
 
+// ── Role constants ──
+const ROLES      = ['CEO','CO CEO','MANAGER','STAFF','PART TIME','VISITOR'];
+const ROLE_LEVEL = {'CEO':1,'CO CEO':2,'MANAGER':3,'STAFF':4,'PART TIME':5,'VISITOR':6};
+const ROLE_LABEL = {'CEO':'👑 CEO','CO CEO':'🌟 CO CEO','MANAGER':'💼 Manager','STAFF':'🟢 Staff','PART TIME':'🟡 Part Time','VISITOR':'⚪ Visitor'};
+const ROLE_CSS   = {'CEO':'role-CEO','CO CEO':'role-COCEO','MANAGER':'role-MANAGER','STAFF':'role-STAFF','PART TIME':'role-PARTTIME','VISITOR':'role-VISITOR'};
+function roleLbl(r){ return ROLE_LABEL[r] || r; }
+function roleCss(r){ return ROLE_CSS[r] || ''; }
+
 function renderStaffList(){
   const el = document.getElementById('staffList');
   const entries = Object.entries(_staffData);
@@ -1719,15 +1803,22 @@ function renderStaffList(){
     el.innerHTML = '<div class="staff-empty">ยังไม่มีพนักงาน</div>';
     return;
   }
+  entries.sort((a,b)=>(ROLE_LEVEL[(a[1].role||'VISITOR').toUpperCase()]||99)-(ROLE_LEVEL[(b[1].role||'VISITOR').toUpperCase()]||99));
   el.innerHTML = entries.map(([k,s]) => {
     const pos = _posData[s.positionKey] ? _posData[s.positionKey].name : s.position || '—';
+    const posColor = _posData[s.positionKey]?.color || '#9a8060';
+    const uRole = (s.role || 'VISITOR').toUpperCase().replace('-',' ');
+    const initials = (s.name || '?')[0].toUpperCase();
     return `
       <div class="staff-card">
         <div class="staff-card-left">
-          <div class="staff-avatar-icon">👤</div>
+          <div class="staff-avatar-icon">${initials}</div>
           <div>
             <div class="staff-card-name">${s.name}</div>
-            <div class="staff-card-pos">🏷️ ${pos}</div>
+            <div class="staff-card-pos" style="color:${posColor}">🏷️ ${pos}</div>
+            <div class="staff-card-role">
+              <span class="role-badge ${roleCss(uRole)}">${roleLbl(uRole)}</span>
+            </div>
           </div>
         </div>
         <div class="staff-card-actions">
@@ -1740,18 +1831,67 @@ function renderStaffList(){
 window.addStaff = function(){
   const name = document.getElementById('newStaffName').value.trim();
   const posKey = document.getElementById('newStaffPos').value;
+  const role = document.getElementById('newStaffRole').value || 'VISITOR';
   if(!name){ toast('กรุณากรอกชื่อพนักงาน'); return; }
   if(!posKey){ toast('กรุณาเลือกตำแหน่ง'); return; }
   const posName = _posData[posKey] ? _posData[posKey].name : '';
-  push(ref(db,'staff'), { name, position:posName, positionKey:posKey, addedAt:Date.now() });
+  push(ref(db,'staff'), { name, position:posName, positionKey:posKey, role, addedAt:Date.now() });
   document.getElementById('newStaffName').value = '';
   document.getElementById('newStaffPos').value = '';
+  document.getElementById('newStaffRole').value = 'VISITOR';
   toast('✅ เพิ่มพนักงาน "'+name+'" แล้ว');
 };
 window.deleteStaff = function(key){
   if(!confirm('ลบพนักงานนี้?')) return;
   remove(ref(db,'staff/'+key));
   toast('🗑 ลบพนักงานแล้ว');
+};
+
+// ── Rank Table ──
+function renderRankTable(){
+  const tbody = document.getElementById('rankTableBody');
+  const entries = Object.entries(_staffData);
+  if(!entries.length){
+    tbody.innerHTML = '<tr><td colspan="4" style="color:#9a8060;padding:24px;text-align:center">ยังไม่มีพนักงาน</td></tr>';
+    return;
+  }
+  entries.sort((a,b)=>(ROLE_LEVEL[(a[1].role||'VISITOR').toUpperCase()]||99)-(ROLE_LEVEL[(b[1].role||'VISITOR').toUpperCase()]||99));
+  tbody.innerHTML = entries.map(([k,s]) => {
+    const uRole = (s.role || 'VISITOR').toUpperCase().replace('-',' ');
+    const pos = _posData[s.positionKey]?.name || s.position || '—';
+    const roleOpts = ROLES.map(r => `<option value="${r}" ${r===uRole?'selected':''}>${roleLbl(r)}</option>`).join('');
+    return `<tr>
+      <td>
+        <div class="rank-name-cell">${s.name}</div>
+        <div class="rank-email-cell">🏷️ ${pos}</div>
+      </td>
+      <td><span class="role-badge ${roleCss(uRole)}">${roleLbl(uRole)}</span></td>
+      <td><select class="role-select-sm" id="rsel-${k}">${roleOpts}</select></td>
+      <td><button class="btn-save-sm" id="rsav-${k}" onclick="saveStaffRole('${k}')">บันทึก</button></td>
+    </tr>`;
+  }).join('');
+}
+
+window.saveStaffRole = async function(key){
+  const sel = document.getElementById('rsel-'+key);
+  const btn = document.getElementById('rsav-'+key);
+  if(!sel) return;
+  const newRole = sel.value;
+  btn.disabled = true; btn.textContent = '⏳';
+  try {
+    const updates = {};
+    updates['staff/'+key+'/role'] = newRole;
+    const { update: fbUpdate } = window._fbFns;
+    await fbUpdate(ref(db, 'staff/'+key), { role: newRole });
+    if(_staffData[key]) _staffData[key].role = newRole;
+    renderStaffList();
+    btn.textContent = '✅';
+    setTimeout(() => { if(btn) { btn.disabled=false; btn.textContent='บันทึก'; } }, 2000);
+    toast('✅ อัพเดทยศ "'+_staffData[key]?.name+'" แล้ว');
+  } catch(e){
+    btn.disabled=false; btn.textContent='บันทึก';
+    toast('❌ บันทึกไม่สำเร็จ: '+e.message);
+  }
 };
 
 // ===== POSITIONS =====
@@ -1762,24 +1902,30 @@ function renderPositionList(){
     el.innerHTML = '<div class="staff-empty">ยังไม่มีตำแหน่ง</div>';
     return;
   }
-  // นับจำนวนพนักงานในแต่ละตำแหน่ง
   const counts = {};
   Object.values(_staffData).forEach(s => {
     if(s.positionKey) counts[s.positionKey] = (counts[s.positionKey]||0)+1;
   });
-  el.innerHTML = entries.map(([k,v]) => `
-    <div class="pos-card">
-      <span class="pos-card-name">🏷️ ${v.name}</span>
+  el.innerHTML = entries.map(([k,v]) => {
+    const c = v.color || '#9a8060';
+    return `
+    <div class="pos-row">
+      <div class="pos-row-left">
+        <span class="pos-color-dot" style="background:${c}"></span>
+        <span class="pos-row-name" style="color:${c}">${v.name}</span>
+      </div>
       <div style="display:flex;align-items:center;gap:10px;">
         <span class="pos-card-count">👤 ${counts[k]||0} คน</span>
         <button class="staff-del-btn" onclick="deletePosition('${k}')">🗑</button>
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 window.addPosition = function(){
   const name = document.getElementById('newPosName').value.trim();
+  const color = document.getElementById('newPosColor').value || '#c9a84c';
   if(!name){ toast('กรุณากรอกชื่อตำแหน่ง'); return; }
-  push(ref(db,'positions'), { name, addedAt:Date.now() });
+  push(ref(db,'positions'), { name, color, addedAt:Date.now() });
   document.getElementById('newPosName').value = '';
   toast('✅ เพิ่มตำแหน่ง "'+name+'" แล้ว');
 };
