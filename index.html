@@ -79,6 +79,8 @@
 
       // Sync staffList from DB
       if (typeof syncStaffFromDB === 'function') syncStaffFromDB();
+      // Sync positions from DB
+      if (typeof syncPositionsFromDB === 'function') syncPositionsFromDB();
 
     } else {
       // Signed out
@@ -759,12 +761,13 @@ body { font-family: 'Prompt', sans-serif; background: #0a0a0a; color: #fff; min-
         <div class="uname" id="adminName">Drustrix</div>
         <div class="uemail" id="adminEmail">gomepass123@gmail.com</div>
       </div>
-      <span class="role-badge badge-coceo">☀ CO CEO</span>
+      <span class="role-badge" id="adminRoleBadge">🌿 VISITOR</span>
     </div>
 
     <!-- Tabs -->
     <div class="admin-tabs">
       <button class="admin-tab active" data-tab="staff" onclick="switchTab('staff',this)">👥 พนักงาน</button>
+      <button class="admin-tab" data-tab="rank" onclick="switchTab('rank',this)">👑 ยศ</button>
       <button class="admin-tab" data-tab="positions" onclick="switchTab('positions',this)">📋 ตำแหน่ง</button>
       <button class="admin-tab" data-tab="history" onclick="switchTab('history',this)">📖 ประวัติ</button>
     </div>
@@ -787,7 +790,7 @@ body { font-family: 'Prompt', sans-serif; background: #0a0a0a; color: #fff; min-
           <div class="form-group">
             <label>ยศ</label>
             <select id="newStaffRole">
-              <!-- populated dynamically by renderNewStaffRoleSelect() -->
+              <option value="VISITOR">🌿 VISITOR</option>
             </select>
           </div>
         </div>
@@ -796,6 +799,12 @@ body { font-family: 'Prompt', sans-serif; background: #0a0a0a; color: #fff; min-
 
       <div class="panel-section-title">✦ รายชื่อพนักงาน</div>
       <div class="staff-list" id="staffList"></div>
+    </div>
+
+    <!-- ── TAB: RANK ── -->
+    <div class="tab-panel" id="tab-rank">
+      <div class="panel-section-title">✦ จัดการยศ</div>
+      <div class="staff-list" id="rankList"></div>
     </div>
 
     <!-- ── TAB: POSITIONS ── -->
@@ -971,7 +980,10 @@ function clearBill() {
 /* ══════════════════════════════════════
    ADMIN PANEL
 ══════════════════════════════════════ */
-function openAdmin()  { document.getElementById('admin-overlay').classList.add('open'); }
+function openAdmin()  {
+  document.getElementById('admin-overlay').classList.add('open');
+  updateAdminUserCard();
+}
 function closeAdmin() { document.getElementById('admin-overlay').classList.remove('open'); }
 function overlayClick(e) { if (e.target === document.getElementById('admin-overlay')) closeAdmin(); }
 
@@ -1041,31 +1053,30 @@ function deleteStaff(i) {
   showToast('ลบ ' + name + ' แล้ว');
 }
 
-/* — NEW STAFF ROLE SELECT — */
-function renderNewStaffRoleSelect() {
-  const sel = document.getElementById('newStaffRole');
-  if (!sel) return;
-  const cur = sel.value;
-  sel.innerHTML = positions.map(p => `<option value="${p.name}"${p.name===cur?' selected':''}>${p.name}</option>`).join('');
-}
-
 /* — RANKS — */
 function renderRanks() {
-  const ranks = ['CEO','CO CEO','MANAGER','STAFF','PART TIME','VISITOR'];
-  document.getElementById('rankList').innerHTML = ranks.map(r => {
+  document.getElementById('rankList').innerHTML = positions.map(p => {
+    const r = p.name;
     const count = staffList.filter(s => s.role === r).length;
     const bc = roleBadgeClass[r] || 'badge-visitor';
     const ic = roleIcon[r] || '';
     return `
       <div class="staff-card">
-        <div class="position-dot" style="width:10px;height:10px;border-radius:50%;background:${roleColors[r]||'#888'};flex-shrink:0;margin:0 4px"></div>
+        <div class="position-dot" style="width:10px;height:10px;border-radius:50%;background:${p.color};flex-shrink:0;margin:0 4px"></div>
         <div class="staff-info">
-          <div class="sname" style="color:${roleColors[r]||'#f0e8cc'}">${r}</div>
+          <div class="sname" style="color:${p.color}">${r}</div>
           <div class="semail">${count} คน</div>
         </div>
         <span class="role-badge ${bc}" style="font-size:10px">${ic} ${r}</span>
       </div>`;
   }).join('');
+}
+
+function refreshNewStaffRoleSelect() {
+  const sel = document.getElementById('newStaffRole');
+  if (!sel) return;
+  const cur = sel.value;
+  sel.innerHTML = positions.map(p => `<option value="${p.name}"${p.name===cur?' selected':''}>${roleIcon[p.name]||''} ${p.name}</option>`).join('');
 }
 
 /* — POSITIONS — */
@@ -1080,7 +1091,6 @@ function renderPositions() {
         <button class="btn-del-pos" onclick="deletePosition(${i})">ลบ</button>
       </div>`;
   }).join('');
-  renderNewStaffRoleSelect();
 }
 
 function addPosition() {
@@ -1088,18 +1098,28 @@ function addPosition() {
   const color = document.getElementById('newPosColor').value;
   if (!name) { showToast('กรุณากรอกชื่อตำแหน่ง', true); return; }
   if (positions.find(p => p.name === name)) { showToast('ตำแหน่งนี้มีอยู่แล้ว', true); return; }
-  positions.push({ name, color });
+  // Save to Firebase — onValue will update local positions array
+  if (window._fbDb) {
+    window._fbPush(window._fbRef(window._fbDb, 'positions'), { name, color });
+  } else {
+    positions.push({ name, color });
+    renderPositions();
+  }
   addHistory('เพิ่มตำแหน่ง: ' + name);
   document.getElementById('newPosName').value = '';
-  renderPositions();
   showToast('เพิ่มตำแหน่ง ' + name + ' แล้ว');
 }
 
 function deletePosition(i) {
-  const name = positions[i].name;
-  positions.splice(i, 1);
+  const pos = positions[i];
+  const name = pos.name;
+  if (window._fbDb && pos.id) {
+    window._fbRemove(window._fbRef(window._fbDb, `positions/${pos.id}`));
+  } else {
+    positions.splice(i, 1);
+    renderPositions();
+  }
   addHistory('ลบตำแหน่ง: ' + name);
-  renderPositions();
   showToast('ลบตำแหน่ง ' + name + ' แล้ว');
 }
 
@@ -1169,7 +1189,6 @@ function syncStaffFromDB() {
   window._fbOnValue(window._fbRef(window._fbDb, 'users'), (snapshot) => {
     if (!snapshot.exists()) return;
     const data = snapshot.val();
-    // Rebuild staffList from DB
     staffList = Object.entries(data).map(([uid, u]) => ({
       uid,
       name:  u.name  || 'Unknown',
@@ -1179,15 +1198,78 @@ function syncStaffFromDB() {
     renderStaff();
     renderRanks();
     renderPositions();
+    updateAdminUserCard();
   });
 }
 
+/* ══════════════════════════════════════
+   SYNC POSITIONS FROM FIREBASE DB
+══════════════════════════════════════ */
+function syncPositionsFromDB() {
+  if (!window._fbDb) return;
+  window._fbOnValue(window._fbRef(window._fbDb, 'positions'), (snapshot) => {
+    if (snapshot.exists()) {
+      const data = snapshot.val();
+      // data is object keyed by push-id: { name, color }
+      positions = Object.entries(data).map(([id, p]) => ({ id, name: p.name, color: p.color }));
+    } else {
+      // First run — seed default positions into DB
+      const defaults = [
+        { name:'CEO',       color:'#ffd700' },
+        { name:'CO CEO',    color:'#f0c060' },
+        { name:'MANAGER',   color:'#a78bfa' },
+        { name:'STAFF',     color:'#60a5fa' },
+        { name:'PART TIME', color:'#4ade80' },
+        { name:'VISITOR',   color:'#86efac' },
+      ];
+      defaults.forEach(p => {
+        window._fbPush(window._fbRef(window._fbDb, 'positions'), p);
+      });
+    }
+    renderPositions();
+    renderRanks();
+    renderStaff(); // re-render staff so role dropdowns reflect current positions
+    refreshNewStaffRoleSelect();
+  });
+}
+
+/* ══════════════════════════════════════
+   UPDATE ADMIN USER CARD
+══════════════════════════════════════ */
+function updateAdminUserCard() {
+  if (!window.googleUser) return;
+  const role = window.googleUser.role || 'VISITOR';
+  const bc = roleBadgeClass[role] || 'badge-visitor';
+  const ic = roleIcon[role] || '🌿';
+  const badge = document.getElementById('adminRoleBadge');
+  if (badge) {
+    badge.className = 'role-badge ' + bc;
+    badge.textContent = ic + ' ' + role;
+  }
+  const nameEl  = document.getElementById('adminName');
+  const emailEl = document.getElementById('adminEmail');
+  const avatarEl = document.getElementById('adminAvatar');
+  if (nameEl)  nameEl.textContent  = window.googleUser.name  || '';
+  if (emailEl) emailEl.textContent = window.googleUser.email || '';
+  if (avatarEl) {
+    if (window.googleUser.photoURL) {
+      avatarEl.innerHTML = `<img src="${window.googleUser.photoURL}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
+    } else {
+      avatarEl.textContent = (window.googleUser.name || '?')[0].toUpperCase();
+    }
+  }
+}
+
 // Override saveStaff to also write role back to DB
-const _origSaveStaff = saveStaff;
 function saveStaff(i) {
   const s = staffList[i];
   if (s.uid && window._fbDb) {
     window._fbSet(window._fbRef(window._fbDb, `users/${s.uid}/role`), s.role);
+    // If saving own role, update googleUser
+    if (window.googleUser && window.googleUser.uid === s.uid) {
+      window.googleUser.role = s.role;
+      updateAdminUserCard();
+    }
   }
   addHistory('แก้ไขยศ: ' + s.name + ' → ' + s.role);
   renderStaff();
@@ -1229,7 +1311,6 @@ renderBill();
 renderStaff();
 renderRanks();
 renderPositions();
-renderNewStaffRoleSelect();
 renderHistory();
 </script>
 </body>
