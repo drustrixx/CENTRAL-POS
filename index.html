@@ -1829,7 +1829,10 @@ function renderVisitorSearch() {
     container.innerHTML = `<div style="font-size:12px;color:var(--muted);padding:6px 0">${q ? 'ไม่พบ Visitor ที่ตรงกัน' : 'ไม่มี Visitor ในระบบขณะนี้'}</div>`;
     return;
   }
-  const allowedRoles = positions.filter(p => roleRank(p.name) > myRank && p.name !== 'VISITOR');
+  // roles ที่สามารถให้ได้ = ทุก role ที่ต่ำกว่าตัวเอง (rank มากกว่า myRank) รวม VISITOR
+  const allowedRoles = positions
+    .filter(p => roleRank(p.name) > myRank)
+    .sort((a, b) => roleRank(b.name) - roleRank(a.name)); // เรียงจากต่ำสุดก่อน (VISITOR อยู่บนสุด)
   container.innerHTML = results.map(s => {
     const realIdx = staffList.indexOf(s);
     const initials = s.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
@@ -1857,15 +1860,19 @@ function grantVisitorRole(realIdx) {
   const sel = document.getElementById(`vsr-${realIdx}`);
   if (!sel) return;
   const newRole = sel.value;
+  // ป้องกันให้ role ที่สูงกว่าหรือเท่ากับตัวเอง (rank น้อยกว่าหรือเท่ากับ myRank)
   if (roleRank(newRole) <= roleRank(myRole())) {
     showToast('ไม่สามารถกำหนดยศที่สูงกว่าหรือเท่ากับตัวเองได้', true); return;
   }
   s.role = newRole;
   if (s.uid && window._fbDb) {
-    window._fbSet(window._fbRef(window._fbDb, `users/${s.uid}/role`), newRole);
+    window._fbSet(window._fbRef(window._fbDb, `users/${s.uid}/role`), newRole)
+      .then(() => showToast(`ให้ Role ${newRole} แก่ ${s.name} แล้ว`))
+      .catch(err => showToast('บันทึกล้มเหลว: ' + err.message, true));
+  } else {
+    showToast(`ให้ Role ${newRole} แก่ ${s.name} แล้ว`);
   }
   addHistory('ให้ Role: ' + s.name + ' → ' + newRole);
-  showToast(`ให้ Role ${newRole} แก่ ${s.name} แล้ว`);
   renderVisitorSearch();
   renderStaff();
 }
