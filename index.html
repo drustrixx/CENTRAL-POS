@@ -1867,7 +1867,9 @@ function deleteStaff(i) {
 
 /* — RANKS — */
 function renderRanks() {
-  document.getElementById('rankList').innerHTML = positions.map(p => {
+  const rankListEl = document.getElementById('rankList');
+  if (!rankListEl) return; // no ranks tab in current UI — nothing to render
+  rankListEl.innerHTML = positions.map(p => {
     const r = p.name;
     const count = staffList.filter(s => s.role === r).length;
     const bc = roleBadgeClass[r] || 'badge-visitor';
@@ -1959,6 +1961,7 @@ function addHistory(text) {
 
 function renderHistory() {
   const el = document.getElementById('historyContainer');
+  if (!el) return; // no general history-log panel in current UI — nothing to render
   if (historyLog.length === 0) {
     el.innerHTML = '<div class="history-empty">ยังไม่มีประวัติการดำเนินการ</div>';
     return;
