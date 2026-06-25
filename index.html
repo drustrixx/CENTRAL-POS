@@ -1897,8 +1897,7 @@ function renderStaff() {
   // ซ่อน VISITOR ออกจากรายชื่อพนักงาน
   const visibleStaff = staffList.filter(s => s.role !== 'VISITOR');
   document.getElementById('staffList').innerHTML = visibleStaff.map((s) => {
-    // หา index จริงใน staffList เพื่อ saveStaff/deleteStaff ถูกต้อง
-    const realIdx = staffList.indexOf(s);
+    const safeUid = s.uid ? encodeURIComponent(s.uid) : '';
     const initials = s.name.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
     const bc = roleBadgeClass[s.role] || 'badge-visitor';
     const ic = roleIcon[s.role] || '';
@@ -1908,11 +1907,11 @@ function renderStaff() {
     const allowedRoles = positions.filter(p => roleRank(p.name) > myRank && p.name !== 'VISITOR');
     const actions = !canEditThis
       ? `<span class="view-only-text">ดูอย่างเดียว</span>`
-      : `<select class="staff-role-select" data-uid="${s.uid||''}" onchange="setPendingRole(this,'${s.uid||''}',${realIdx})">
+      : `<select class="staff-role-select" id="sel-${safeUid}" data-uid="${safeUid}">
            ${allowedRoles.map(p=>`<option${s.role===p.name?' selected':''}>${p.name}</option>`).join('')}
          </select>
-         <button class="btn-save" onclick="saveStaff(${realIdx})">บันทึก</button>
-         <button class="btn-del" onclick="deleteStaff(${realIdx})">ลบ</button>`;
+         <button class="btn-save" onclick="saveStaffByUid('${safeUid}')">บันทึก</button>
+         <button class="btn-del" onclick="deleteStaffByUid('${safeUid}')">ลบ</button>`;
     return `
       <div class="staff-card">
         <div class="staff-avatar">${initials}</div>
@@ -1948,48 +1947,67 @@ function addStaff() {
   showToast('เพิ่ม ' + name + ' แล้ว');
 }
 
-function saveStaff(i) {
+/* uid-based helpers (index-free, safe against re-render during confirm) */
+function _staffByUid(uid) { return staffList.find(s => s.uid === uid); }
+
+function saveStaffByUid(uid) {
   if (!canEditAdmin()) { showToast('ไม่มีสิทธิ์แก้ไข', true); return; }
-  const s = staffList[i];
-  if (roleRank(s.role) <= roleRank(myRole())) { showToast('ไม่สามารถกำหนดยศที่สูงกว่าหรือเท่ากับตัวเองได้', true); renderStaff(); return; }
-  // sync role ขึ้น Firebase
-  if (s.uid && window._fbDb) {
-    window._fbSet(window._fbRef(window._fbDb, `users/${s.uid}/role`), s.role)
-      .then(() => showToast('บันทึกแล้ว: ' + s.name + ' → ' + s.role))
+  const s = _staffByUid(uid);
+  if (!s) { showToast('ไม่พบข้อมูลพนักงาน', true); return; }
+  const sel = document.getElementById('sel-' + uid);
+  const newRole = sel ? sel.value : s.role;
+  if (roleRank(newRole) <= roleRank(myRole())) {
+    showToast('ไม่สามารถกำหนดยศที่สูงกว่าหรือเท่ากับตัวเองได้', true);
+    renderStaff(); return;
+  }
+  if (window._fbDb) {
+    window._fbSet(window._fbRef(window._fbDb, `users/${uid}/role`), newRole)
+      .then(() => showToast('บันทึกแล้ว: ' + s.name + ' → ' + newRole))
       .catch(err => showToast('บันทึกล้มเหลว: ' + err.message, true));
   } else {
+    s.role = newRole;
+    renderStaff(); renderRanks(); renderPositions();
     showToast('บันทึกแล้ว');
   }
-  addHistory('แก้ไขยศ: ' + s.name + ' → ' + s.role);
-  renderStaff();
+  addHistory('แก้ไขยศ: ' + s.name + ' → ' + newRole);
 }
 
-function deleteStaff(i) {
+function deleteStaffByUid(uid) {
   if (!canEditAdmin()) { showToast('ไม่มีสิทธิ์ลบ', true); return; }
-  const s = staffList[i];
-  if (roleRank(s.role) <= roleRank(myRole())) { showToast('ไม่สามารถลบคนที่ยศสูงกว่าหรือเท่ากับตัวเองได้', true); return; }
+  const s = _staffByUid(uid);
+  if (!s) { showToast('ไม่พบข้อมูลพนักงาน', true); return; }
+  if (roleRank(s.role) <= roleRank(myRole())) {
+    showToast('ไม่สามารถลบคนที่ยศสูงกว่าหรือเท่ากับตัวเองได้', true); return;
+  }
+  // snapshot ค่าที่ต้องใช้ ก่อน confirm dialog เปิด
+  const snapName = s.name;
+  const snapUid  = s.uid;
+  const snapRole = s.role;
   showConfirm({
     icon: '👤',
     title: 'ลบพนักงาน',
-    msg: `คุณต้องการลบ <strong>${s.name}</strong> (${s.role}) ออกจากรายชื่อ?<br><span style="color:#f0a050;font-size:12px">⚠️ บัญชีจะถูก Reset กลับเป็น Visitor</span>`,
+    msg: `คุณต้องการลบ <strong>${snapName}</strong> (${snapRole}) ออกจากรายชื่อ?<br><span style="color:#f0a050;font-size:12px">⚠️ บัญชีจะถูก Reset กลับเป็น Visitor</span>`,
     okLabel: '🗑️ ยืนยัน ลบ',
     onOk: () => {
-      const name = s.name;
-      const uid  = s.uid;
-      // Reset role → VISITOR (ไม่ลบ node เพราะ Security Rules บล็อก)
-      if (uid && window._fbDb) {
-        window._fbSet(window._fbRef(window._fbDb, `users/${uid}/role`), 'VISITOR')
-          .then(() => showToast(name + ' Reset เป็น Visitor แล้ว'))
-          .catch(err => { console.error('[deleteStaff]', err); showToast('ลบล้มเหลว: ' + err.message, true); });
+      if (snapUid && window._fbDb) {
+        console.log('[deleteStaffByUid] setting VISITOR for uid:', snapUid);
+        window._fbSet(window._fbRef(window._fbDb, `users/${snapUid}/role`), 'VISITOR')
+          .then(() => { console.log('[deleteStaffByUid] success'); showToast(snapName + ' Reset เป็น Visitor แล้ว'); })
+          .catch(err => { console.error('[deleteStaffByUid] FAILED:', err); showToast('ลบล้มเหลว: ' + err.message, true); });
       } else {
-        s.role = 'VISITOR';
+        const local = staffList.find(x => x.uid === snapUid);
+        if (local) { local.role = 'VISITOR'; }
         renderStaff(); renderRanks(); renderPositions();
-        showToast(name + ' Reset เป็น Visitor แล้ว');
+        showToast(snapName + ' Reset เป็น Visitor แล้ว');
       }
-      addHistory('ลบพนักงาน: ' + name + ' → VISITOR');
+      addHistory('ลบพนักงาน: ' + snapName + ' → VISITOR');
     }
   });
 }
+
+/* เก็บไว้ for backward-compat (ไม่ถูกเรียกแล้วหลังแก้ renderStaff) */
+function saveStaff(i) { const s = staffList[i]; if (s && s.uid) saveStaffByUid(s.uid); }
+function deleteStaff(i) { const s = staffList[i]; if (s && s.uid) deleteStaffByUid(s.uid); }
 
 /* — RANKS — */
 function renderRanks() {
