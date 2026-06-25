@@ -62,16 +62,8 @@
       window.googleUser.role = role;
       window.googleUser.uid  = user.uid;
 
-      // Update UI
-      const btn = document.getElementById('googleLoginBtn');
-      if (btn) {
-        btn.classList.add('logged-in');
-        const initial = user.displayName ? user.displayName[0].toUpperCase() : '?';
-        const photoHTML = user.photoURL
-          ? `<img src="${user.photoURL}" class="google-avatar" alt="">`
-          : `<span style="width:26px;height:26px;border-radius:50%;background:#22c55e;color:#0a0a0a;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0">${initial}</span>`;
-        btn.innerHTML = `${photoHTML}<span>${user.displayName.split(' ')[0]}</span>`;
-      }
+      // Update header bar
+      if (typeof updateHeaderBar === 'function') updateHeaderBar();
       if (typeof showToast === 'function')
         showToast('เข้าสู่ระบบสำเร็จ: ' + user.displayName);
       if (typeof addHistory === 'function')
@@ -85,12 +77,7 @@
     } else {
       // Signed out
       window.googleUser = null;
-      const btn = document.getElementById('googleLoginBtn');
-      if (btn) {
-        btn.classList.remove('logged-in');
-        btn.innerHTML = `<svg viewBox="0 0 48 48" style="width:18px;height:18px"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.32-8.16 2.32-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg><span>Login with Google</span>`;
-      }
-    }
+      updateHeaderBar();
   });
 </script>
 <style>
@@ -270,21 +257,69 @@ body { font-family: 'Prompt', sans-serif; background: #0a0a0a; color: #fff; min-
   object-fit: cover;
   border: 1px solid #22c55e;
 }
-.btn-header-admin {
+/* NEW HEADER BAR — user chip + admin + logout */
+.header-bar-logged {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 14px;
-  background: transparent;
-  border: 1px solid #333;
-  border-radius: 8px;
-  color: #888;
-  font-family: 'Prompt', sans-serif;
-  font-size: 12px;
-  cursor: pointer;
-  transition: all .15s;
+  gap: 8px;
 }
-.btn-header-admin:hover { border-color: #c8962c; color: #c8962c; }
+.hdr-user-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #1e1408;
+  border: 1px solid #3d2e0e;
+  border-radius: 30px;
+  padding: 5px 12px 5px 5px;
+  cursor: default;
+}
+.hdr-avatar {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  border: 1px solid #c8962c;
+  background: #3d2e0e;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700; color: #f0c060;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+.hdr-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.hdr-name { font-size: 13px; font-weight: 500; color: #f0e8cc; }
+.hdr-role-badge {
+  padding: 2px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.hdr-btn-admin {
+  display: flex; align-items: center; gap: 6px;
+  padding: 7px 14px;
+  background: #2d1e06;
+  border: 1px solid #c8962c;
+  border-radius: 8px;
+  color: #f0c060;
+  font-family: 'Prompt', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background .15s;
+}
+.hdr-btn-admin:hover { background: #3d2e0e; }
+.hdr-btn-logout {
+  display: flex; align-items: center; gap: 6px;
+  padding: 7px 14px;
+  background: #2a1010;
+  border: 1px solid #7f1d1d;
+  border-radius: 8px;
+  color: #fca5a5;
+  font-family: 'Prompt', sans-serif;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background .15s;
+}
+.hdr-btn-logout:hover { background: #3d1515; }
+
 
 /* GOOGLE LOGIN POPUP */
 #google-popup-overlay {
@@ -716,12 +751,12 @@ body { font-family: 'Prompt', sans-serif; background: #0a0a0a; color: #fff; min-
   <header class="pos-header">
     <h1>🍣 Central Cafe</h1>
     <p>Japanese Dining POS System</p>
-    <!-- Top-right actions -->
-    <div class="header-actions">
-      <button class="btn-header-admin" onclick="openAdmin()">⚙ Admin Panel</button>
+    <!-- Top bar — user chip + admin + logout -->
+    <div class="header-actions" id="headerActions">
+      <!-- Shown when NOT logged in -->
       <button class="btn-google-login" id="googleLoginBtn" onclick="openGooglePopup()">
-        <svg viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.32-8.16 2.32-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/><path fill="none" d="M0 0h48v48H0z"/></svg>
-        <span id="googleBtnText">Login with Google</span>
+        <svg viewBox="0 0 48 48" style="width:18px;height:18px;flex-shrink:0"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.32-8.16 2.32-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+        <span>Login with Google</span>
       </button>
     </div>
   </header>
@@ -767,7 +802,6 @@ body { font-family: 'Prompt', sans-serif; background: #0a0a0a; color: #fff; min-
     <!-- Tabs -->
     <div class="admin-tabs">
       <button class="admin-tab active" data-tab="staff" onclick="switchTab('staff',this)">👥 พนักงาน</button>
-      <button class="admin-tab" data-tab="rank" onclick="switchTab('rank',this)">👑 ยศ</button>
       <button class="admin-tab" data-tab="positions" onclick="switchTab('positions',this)">📋 ตำแหน่ง</button>
       <button class="admin-tab" data-tab="history" onclick="switchTab('history',this)">📖 ประวัติ</button>
     </div>
@@ -799,12 +833,6 @@ body { font-family: 'Prompt', sans-serif; background: #0a0a0a; color: #fff; min-
 
       <div class="panel-section-title">✦ รายชื่อพนักงาน</div>
       <div class="staff-list" id="staffList"></div>
-    </div>
-
-    <!-- ── TAB: RANK ── -->
-    <div class="tab-panel" id="tab-rank">
-      <div class="panel-section-title">✦ จัดการยศ</div>
-      <div class="staff-list" id="rankList"></div>
     </div>
 
     <!-- ── TAB: POSITIONS ── -->
@@ -1234,9 +1262,42 @@ function syncPositionsFromDB() {
 }
 
 /* ══════════════════════════════════════
-   UPDATE ADMIN USER CARD
+   UPDATE HEADER BAR
 ══════════════════════════════════════ */
+function updateHeaderBar() {
+  const bar = document.getElementById('headerActions');
+  if (!bar) return;
+  const u = window.googleUser;
+  if (!u) {
+    bar.innerHTML = `
+      <button class="btn-google-login" id="googleLoginBtn" onclick="openGooglePopup()">
+        <svg viewBox="0 0 48 48" style="width:18px;height:18px;flex-shrink:0"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.32-8.16 2.32-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+        <span>Login with Google</span>
+      </button>`;
+    return;
+  }
+  const role = u.role || 'VISITOR';
+  const bc   = roleBadgeClass[role] || 'badge-visitor';
+  const ic   = roleIcon[role] || '🌿';
+  const avatarHTML = u.photoURL
+    ? `<div class="hdr-avatar"><img src="${u.photoURL}" alt=""></div>`
+    : `<div class="hdr-avatar">${(u.name||'?')[0].toUpperCase()}</div>`;
+  const firstName = (u.name || '').split(' ')[0];
+  bar.innerHTML = `
+    <div class="header-bar-logged">
+      <div class="hdr-user-chip">
+        ${avatarHTML}
+        <span class="hdr-name">${firstName}</span>
+        <span class="hdr-role-badge ${bc}">${ic} ${role}</span>
+      </div>
+      <button class="hdr-btn-admin" onclick="openAdmin()">⚙ Admin Panel</button>
+      <button class="hdr-btn-logout" onclick="openGooglePopup()">🚪 ออกจากระบบ</button>
+    </div>`;
+}
+
+
 function updateAdminUserCard() {
+  updateHeaderBar();
   if (!window.googleUser) return;
   const role = window.googleUser.role || 'VISITOR';
   const bc = roleBadgeClass[role] || 'badge-visitor';
