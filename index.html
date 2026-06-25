@@ -594,8 +594,8 @@ body.staff-no-admin .hdr-btn-admin {
   border: 1px solid var(--border);
   border-radius: 16px;
   width: 100%;
-  max-width: 700px;
-  padding: 28px;
+  max-width: 620px;
+  padding: 20px;
   position: relative;
 }
 
@@ -634,19 +634,19 @@ body.staff-no-admin .hdr-btn-admin {
   background: var(--surface2);
   border: 1px solid var(--border);
   border-radius: 10px;
-  padding: 14px 18px;
+  padding: 10px 14px;
   display: flex;
   align-items: center;
-  gap: 14px;
-  margin-bottom: 20px;
+  gap: 12px;
+  margin-bottom: 14px;
 }
 .admin-avatar {
-  width: 46px; height: 46px;
+  width: 38px; height: 38px;
   border-radius: 50%;
   border: 2px solid var(--accent2);
   background: var(--border);
   display: flex; align-items: center; justify-content: center;
-  font-weight: 600; font-size: 15px; color: var(--accent2);
+  font-weight: 600; font-size: 13px; color: var(--accent2);
   flex-shrink: 0;
 }
 .admin-user-info { flex: 1; }
@@ -679,18 +679,18 @@ body.staff-no-admin .hdr-btn-admin {
   background: var(--surface2);
   border: 1px solid var(--border);
   border-radius: 30px;
-  padding: 5px;
-  margin-bottom: 24px;
+  padding: 4px;
+  margin-bottom: 16px;
 }
 .admin-tab {
   flex: 1;
-  padding: 8px 10px;
+  padding: 6px 10px;
   border: none;
   border-radius: 24px;
   background: transparent;
   color: var(--muted);
   font-family: 'Sarabun', sans-serif;
-  font-size: 13px;
+  font-size: 12px;
   cursor: pointer;
   transition: all .2s;
   display: flex; align-items: center; justify-content: center; gap: 5px;
@@ -717,8 +717,8 @@ body.staff-no-admin .hdr-btn-admin {
   background: var(--surface2);
   border: 1px solid var(--border);
   border-radius: 10px;
-  padding: 18px;
-  margin-bottom: 20px;
+  padding: 12px 14px;
+  margin-bottom: 16px;
 }
 .form-row { display: flex; gap: 12px; margin-bottom: 12px; }
 .form-group { flex: 1; display: flex; flex-direction: column; gap: 5px; }
@@ -762,18 +762,18 @@ body.staff-no-admin .hdr-btn-admin {
   background: var(--surface2);
   border: 1px solid var(--border);
   border-radius: 10px;
-  padding: 14px 16px;
+  padding: 10px 14px;
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
 }
 .staff-avatar {
-  width: 42px; height: 42px;
+  width: 36px; height: 36px;
   border-radius: 50%;
   border: 2px solid var(--border);
   background: var(--surface2);
   display: flex; align-items: center; justify-content: center;
-  font-size: 14px; font-weight: 600; color: var(--accent2);
+  font-size: 12px; font-weight: 600; color: var(--accent2);
   flex-shrink: 0;
 }
 .staff-info { flex: 1; min-width: 0; }
@@ -1420,7 +1420,18 @@ body.staff-no-admin .hdr-btn-admin {
 
     <!-- ── TAB: STAFF ── -->
     <div class="tab-panel active" id="tab-staff">
-      <div class="panel-section-title">✦ เพิ่มพนักงานใหม่</div>
+      <div class="panel-section-title">✦ ค้นหา Visitor &amp; ให้ Role</div>
+      <div class="add-staff-form" style="margin-bottom:14px">
+        <div class="form-row" style="margin-bottom:10px">
+          <div class="form-group">
+            <label>ค้นหาชื่อ / อีเมล (เฉพาะ Visitor)</label>
+            <input type="text" id="visitorSearchInput" placeholder="พิมพ์ชื่อหรืออีเมล..." oninput="renderVisitorSearch()">
+          </div>
+        </div>
+        <div id="visitorSearchResults" style="display:flex;flex-direction:column;gap:8px;max-height:200px;overflow-y:auto;"></div>
+      </div>
+
+      <div class="panel-section-title" style="margin-top:4px">✦ เพิ่มพนักงานใหม่ (manual)</div>
       <div class="add-staff-form">
         <div class="form-row">
           <div class="form-group">
@@ -1777,6 +1788,7 @@ function openAdmin()  {
   document.getElementById('admin-overlay').classList.add('open');
   updateAdminUserCard();
   applyAdminPermissions();
+  renderVisitorSearch();
 }
 function closeAdmin() { document.getElementById('admin-overlay').classList.remove('open'); }
 function overlayClick(e) { if (e.target === document.getElementById('admin-overlay')) closeAdmin(); }
@@ -1802,7 +1814,63 @@ function applyAdminPermissions() {
   renderPositions();
 }
 
-/* ── Role hierarchy ── */
+/* ── Visitor Search & Assign Role ── */
+function renderVisitorSearch() {
+  const q = (document.getElementById('visitorSearchInput')?.value || '').trim().toLowerCase();
+  const container = document.getElementById('visitorSearchResults');
+  if (!container) return;
+  const myRank = roleRank(myRole());
+  const visitors = staffList.filter(s => s.role === 'VISITOR');
+  const results = q
+    ? visitors.filter(s => s.name.toLowerCase().includes(q) || (s.email||'').toLowerCase().includes(q))
+    : visitors;
+
+  if (results.length === 0) {
+    container.innerHTML = `<div style="font-size:12px;color:var(--muted);padding:6px 0">${q ? 'ไม่พบ Visitor ที่ตรงกัน' : 'ไม่มี Visitor ในระบบขณะนี้'}</div>`;
+    return;
+  }
+  const allowedRoles = positions.filter(p => roleRank(p.name) > myRank && p.name !== 'VISITOR');
+  container.innerHTML = results.map(s => {
+    const realIdx = staffList.indexOf(s);
+    const initials = s.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    const roleOpts = allowedRoles.map(p => `<option value="${p.name}">${p.name}</option>`).join('');
+    return `
+      <div class="staff-card" style="padding:10px 14px">
+        <div class="staff-avatar" style="width:34px;height:34px;font-size:12px">${initials}</div>
+        <div class="staff-info">
+          <div class="sname" style="font-size:13px">${s.name}</div>
+          ${s.email ? `<div class="semail">${s.email}</div>` : ''}
+        </div>
+        <div class="staff-actions">
+          <select class="staff-role-select" id="vsr-${realIdx}">
+            ${roleOpts}
+          </select>
+          <button class="btn-save" onclick="grantVisitorRole(${realIdx})">ให้ Role</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function grantVisitorRole(realIdx) {
+  if (!canEditAdmin()) { showToast('ไม่มีสิทธิ์แก้ไข', true); return; }
+  const s = staffList[realIdx];
+  const sel = document.getElementById(`vsr-${realIdx}`);
+  if (!sel) return;
+  const newRole = sel.value;
+  if (roleRank(newRole) <= roleRank(myRole())) {
+    showToast('ไม่สามารถกำหนดยศที่สูงกว่าหรือเท่ากับตัวเองได้', true); return;
+  }
+  s.role = newRole;
+  if (s.uid && window._fbDb) {
+    window._fbSet(window._fbRef(window._fbDb, `users/${s.uid}/role`), newRole);
+  }
+  addHistory('ให้ Role: ' + s.name + ' → ' + newRole);
+  showToast(`ให้ Role ${newRole} แก่ ${s.name} แล้ว`);
+  renderVisitorSearch();
+  renderStaff();
+}
+
+
 const roleOrder = ['CEO','CO CEO','MANAGER','STAFF','PART TIME','VISITOR'];
 function roleRank(r) { const i = roleOrder.indexOf(r); return i === -1 ? 99 : i; }
 
@@ -1812,21 +1880,25 @@ function renderStaff() {
   const myR   = myRole();
   const myRank = roleRank(myR);
   const canEdit = canEditAdmin();
-  document.getElementById('staffList').innerHTML = staffList.map((s, i) => {
+  // ซ่อน VISITOR ออกจากรายชื่อพนักงาน
+  const visibleStaff = staffList.filter(s => s.role !== 'VISITOR');
+  document.getElementById('staffList').innerHTML = visibleStaff.map((s) => {
+    // หา index จริงใน staffList เพื่อ saveStaff/deleteStaff ถูกต้อง
+    const realIdx = staffList.indexOf(s);
     const initials = s.name.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
     const bc = roleBadgeClass[s.role] || 'badge-visitor';
     const ic = roleIcon[s.role] || '';
     // Can only edit someone whose rank is strictly lower than mine
     const canEditThis = canEdit && !isTop(s.role) && roleRank(s.role) > myRank;
-    // Roles available to assign = only roles strictly below my own rank (not equal)
-    const allowedRoles = positions.filter(p => roleRank(p.name) > myRank);
+    // Roles available to assign = only roles strictly below my own rank (not equal), excluding VISITOR
+    const allowedRoles = positions.filter(p => roleRank(p.name) > myRank && p.name !== 'VISITOR');
     const actions = !canEditThis
       ? `<span class="view-only-text">ดูอย่างเดียว</span>`
-      : `<select class="staff-role-select" onchange="staffList[${i}].role=this.value;renderStaff()">
+      : `<select class="staff-role-select" data-uid="${s.uid||''}" onchange="setPendingRole(this,'${s.uid||''}',${realIdx})">
            ${allowedRoles.map(p=>`<option${s.role===p.name?' selected':''}>${p.name}</option>`).join('')}
          </select>
-         <button class="btn-save" onclick="saveStaff(${i})">บันทึก</button>
-         <button class="btn-del" onclick="deleteStaff(${i})">ลบ</button>`;
+         <button class="btn-save" onclick="saveStaff(${realIdx})">บันทึก</button>
+         <button class="btn-del" onclick="deleteStaff(${realIdx})">ลบ</button>`;
     return `
       <div class="staff-card">
         <div class="staff-avatar">${initials}</div>
@@ -1838,6 +1910,11 @@ function renderStaff() {
         <div class="staff-actions">${actions}</div>
       </div>`;
   }).join('');
+}
+
+/* เก็บ role ที่เลือกไว้โดยไม่ re-render (แก้บัค select reset) */
+function setPendingRole(selectEl, uid, realIdx) {
+  staffList[realIdx].role = selectEl.value;
 }
 
 function addStaff() {
