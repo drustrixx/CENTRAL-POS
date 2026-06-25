@@ -970,14 +970,6 @@ body.staff-no-admin .hdr-btn-admin {
             <input type="text" id="newStaffSurname" placeholder="นามสกุล">
           </div>
         </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>ยศ</label>
-            <select id="newStaffRole">
-              <option value="VISITOR">🌿 VISITOR</option>
-            </select>
-          </div>
-        </div>
         <button class="btn-add-staff" onclick="addStaff()">✓ เพิ่มพนักงาน</button>
       </div>
 
@@ -1267,7 +1259,7 @@ function addStaff() {
   if (!canEditAdmin()) { showToast('ไม่มีสิทธิ์เพิ่มพนักงาน', true); return; }
   const fname = document.getElementById('newStaffName').value.trim();
   const lname = document.getElementById('newStaffSurname').value.trim();
-  const role  = document.getElementById('newStaffRole').value;
+  const role  = 'VISITOR';
   if (!fname) { showToast('กรุณากรอกชื่อ', true); return; }
   const name = fname + (lname ? ' ' + lname : '');
   staffList.push({ name, email: '', role });
@@ -1326,7 +1318,8 @@ function refreshNewStaffRoleSelect() {
 
 /* — POSITIONS — */
 function renderPositions() {
-  const canEdit = canEditAdmin();
+  const canDelPos = ['CEO','CO CEO'].includes(myRole());
+  const canEdit   = canEditAdmin();
   document.getElementById('positionsList').innerHTML = positions.map((p, i) => {
     const count = staffList.filter(s => s.role === p.name).length;
     return `
@@ -1334,7 +1327,7 @@ function renderPositions() {
         <div class="position-dot" style="background:${p.color}"></div>
         <div class="position-name" style="color:${p.color}">${p.name}</div>
         <span class="position-count">👤 ${count} คน</span>
-        ${canEdit ? `<button class="btn-del-pos" onclick="deletePosition(${i})">ลบ</button>` : ''}
+        ${canDelPos ? `<button class="btn-del-pos" onclick="deletePosition(${i})">ลบ</button>` : ''}
       </div>`;
   }).join('');
 }
@@ -1357,7 +1350,7 @@ function addPosition() {
 }
 
 function deletePosition(i) {
-  if (!canEditAdmin()) { showToast('ไม่มีสิทธิ์ลบตำแหน่ง', true); return; }
+  if (!['CEO','CO CEO'].includes(myRole())) { showToast('เฉพาะ CEO และ CO CEO เท่านั้นที่ลบตำแหน่งได้', true); return; }
   const pos = positions[i];
   const name = pos.name;
   if (window._fbDb && pos.id) {
