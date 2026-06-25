@@ -765,7 +765,6 @@ body { font-family: 'Prompt', sans-serif; background: #0a0a0a; color: #fff; min-
     <!-- Tabs -->
     <div class="admin-tabs">
       <button class="admin-tab active" data-tab="staff" onclick="switchTab('staff',this)">👥 พนักงาน</button>
-      <button class="admin-tab" data-tab="rank" onclick="switchTab('rank',this)">👑 ยศ</button>
       <button class="admin-tab" data-tab="positions" onclick="switchTab('positions',this)">📋 ตำแหน่ง</button>
       <button class="admin-tab" data-tab="history" onclick="switchTab('history',this)">📖 ประวัติ</button>
     </div>
@@ -788,10 +787,7 @@ body { font-family: 'Prompt', sans-serif; background: #0a0a0a; color: #fff; min-
           <div class="form-group">
             <label>ยศ</label>
             <select id="newStaffRole">
-              <option value="MANAGER">👥 Manager</option>
-              <option value="STAFF">Staff</option>
-              <option value="PART TIME">Part Time</option>
-              <option value="VISITOR">Visitor</option>
+              <!-- populated dynamically by renderNewStaffRoleSelect() -->
             </select>
           </div>
         </div>
@@ -800,12 +796,6 @@ body { font-family: 'Prompt', sans-serif; background: #0a0a0a; color: #fff; min-
 
       <div class="panel-section-title">✦ รายชื่อพนักงาน</div>
       <div class="staff-list" id="staffList"></div>
-    </div>
-
-    <!-- ── TAB: RANK ── -->
-    <div class="tab-panel" id="tab-rank">
-      <div class="panel-section-title">✦ จัดการยศ</div>
-      <div class="staff-list" id="rankList"></div>
     </div>
 
     <!-- ── TAB: POSITIONS ── -->
@@ -1002,7 +992,7 @@ function renderStaff() {
     const actions = isTop(s.role)
       ? `<span class="view-only-text">ดูอย่างเดียว</span>`
       : `<select class="staff-role-select" onchange="staffList[${i}].role=this.value;renderStaff()">
-           ${['MANAGER','STAFF','PART TIME','VISITOR'].map(r=>`<option${s.role===r?' selected':''}>${r}</option>`).join('')}
+           ${positions.map(p=>`<option${s.role===p.name?' selected':''}>${p.name}</option>`).join('')}
          </select>
          <button class="btn-save" onclick="saveStaff(${i})">บันทึก</button>
          <button class="btn-del" onclick="deleteStaff(${i})">ลบ</button>`;
@@ -1051,6 +1041,14 @@ function deleteStaff(i) {
   showToast('ลบ ' + name + ' แล้ว');
 }
 
+/* — NEW STAFF ROLE SELECT — */
+function renderNewStaffRoleSelect() {
+  const sel = document.getElementById('newStaffRole');
+  if (!sel) return;
+  const cur = sel.value;
+  sel.innerHTML = positions.map(p => `<option value="${p.name}"${p.name===cur?' selected':''}>${p.name}</option>`).join('');
+}
+
 /* — RANKS — */
 function renderRanks() {
   const ranks = ['CEO','CO CEO','MANAGER','STAFF','PART TIME','VISITOR'];
@@ -1082,6 +1080,7 @@ function renderPositions() {
         <button class="btn-del-pos" onclick="deletePosition(${i})">ลบ</button>
       </div>`;
   }).join('');
+  renderNewStaffRoleSelect();
 }
 
 function addPosition() {
@@ -1230,6 +1229,7 @@ renderBill();
 renderStaff();
 renderRanks();
 renderPositions();
+renderNewStaffRoleSelect();
 renderHistory();
 </script>
 </body>
