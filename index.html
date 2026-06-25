@@ -1333,17 +1333,16 @@ function refreshNewStaffRoleSelect() {
 /* — POSITIONS — */
 function renderPositions() {
   const canDelPos = ['CEO','CO CEO'].includes(myRole());
-  const canEdit   = canEditAdmin();
+  const myRank    = roleRank(myRole());
   document.getElementById('positionsList').innerHTML = positions.map((p, i) => {
     const count = staffList.filter(s => s.role === p.name).length;
-    const isOwnRole = p.name === myRole();
-    const showDel = canDelPos && !isOwnRole;
+    const canDel = canDelPos && roleRank(p.name) > myRank;
     return `
       <div class="position-row">
         <div class="position-dot" style="background:${p.color}"></div>
         <div class="position-name" style="color:${p.color}">${p.name}</div>
         <span class="position-count">👤 ${count} คน</span>
-        ${showDel ? `<button class="btn-del-pos" onclick="deletePosition(${i})">ลบ</button>` : ''}
+        ${canDel ? `<button class="btn-del-pos" onclick="deletePosition(${i})">ลบ</button>` : ''}
       </div>`;
   }).join('');
 }
@@ -1367,7 +1366,7 @@ function addPosition() {
 
 function deletePosition(i) {
   if (!['CEO','CO CEO'].includes(myRole())) { showToast('เฉพาะ CEO และ CO CEO เท่านั้นที่ลบตำแหน่งได้', true); return; }
-  if (positions[i].name === myRole()) { showToast('ไม่สามารถลบตำแหน่งของตัวเองได้', true); return; }
+  if (roleRank(positions[i].name) <= roleRank(myRole())) { showToast('ไม่สามารถลบตำแหน่งที่สูงกว่าหรือเท่ากับตัวเองได้', true); return; }
   const pos = positions[i];
   const name = pos.name;
   if (window._fbDb && pos.id) {
