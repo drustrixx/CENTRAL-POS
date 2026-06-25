@@ -2287,7 +2287,7 @@ function renderQueuePanel(status, containerId, emptyMsg, actionFn) {
         <div class="order-card-header">
           <div>
             <div class="order-card-customer">&#x1F464; ${o.customer}</div>
-            <div class="order-card-meta">โดย ${o.sender}${disc}</div>
+            <div class="order-card-meta">รับออเดอร์โดย ${o.sender}${disc}</div>
           </div>
           <div class="order-card-time">${o.time}</div>
         </div>
@@ -2329,6 +2329,7 @@ function orderServed(id) {
   renderOrderHistory();
   showToast(`เสิร์ฟออเดอร์ ${o.customer} เรียบร้อย!`);
   addHistory(`เสิร์ฟออเดอร์: ${o.customer} ยอด ${o.total.toLocaleString()} บาท`);
+  closeOrderQueue();
 }
 
 function renderOrderHistory() {
