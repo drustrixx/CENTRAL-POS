@@ -94,6 +94,7 @@
         if (typeof addHistory        === 'function') addHistory('Login: ' + window.googleUser.name + ' (' + user.email + ') | Role: ' + role);
         if (typeof syncStaffFromDB         === 'function') syncStaffFromDB();
         if (typeof syncPositionsFromDB     === 'function') syncPositionsFromDB();
+        if (typeof syncOrderQueueFromDB    === 'function') syncOrderQueueFromDB();
         if (typeof syncOrderHistoryFromDB  === 'function') syncOrderHistoryFromDB();
         // First login ever (no fullName saved yet) — ask for it
         if (!fullName && typeof openFullNameModal === 'function') openFullNameModal();
@@ -2587,14 +2588,15 @@ function _doSendOrder(customerName) {
     senderUid: window.googleUser.uid   // audit trail
   };
 
-  // Push to Firebase if available
+  // Push to Firebase — listener จะ sync กลับมาทุกเครื่องอัตโนมัติ
   if (window._fbDb) {
-    window._fbPush(window._fbRef(window._fbDb, 'orders'), queueItem);
+    window._fbSet(window._fbRef(window._fbDb, `orders/${queueItem.id}`), queueItem);
+  } else {
+    // Firebase ไม่พร้อม — fallback เพิ่มใน local ไปก่อน
+    orderQueue.push(queueItem);
+    renderOrderQueue();
+    updateQueueBadge();
   }
-
-  orderQueue.push(queueItem);
-  renderOrderQueue();
-  updateQueueBadge();
 
   // Clear bill
   order = {};
@@ -2695,7 +2697,9 @@ function acceptOrder(id) {
   const o = orderQueue.find(x => x.id === id);
   if (!o) return;
   o.status = 'cooking';
-  if (window._fbDb) { /* sync status */ }
+  if (window._fbDb) {
+    window._fbSet(window._fbRef(window._fbDb, `orders/${id}/status`), 'cooking');
+  }
   renderOrderQueue();
   showToast(`รับออเดอร์ของ ${o.customer} แล้ว — กำลังทำ`);
 }
@@ -2704,7 +2708,9 @@ function doneCooking(id) {
   const o = orderQueue.find(x => x.id === id);
   if (!o) return;
   o.status = 'ready';
-  if (window._fbDb) { /* sync status */ }
+  if (window._fbDb) {
+    window._fbSet(window._fbRef(window._fbDb, `orders/${id}/status`), 'ready');
+  }
   renderOrderQueue();
   showToast(`ออเดอร์ ${o.customer} พร้อมเสิร์ฟแล้ว!`);
 }
@@ -2736,6 +2742,9 @@ function orderServed(id) {
     ts
   };
   if (window._fbDb) {
+    // ลบออกจาก orders (queue) ก่อน
+    window._fbRemove(window._fbRef(window._fbDb, `orders/${o.id}`));
+    // บันทึกลง orders_history
     console.log('[orderServed] pushing to orders_history/' + weekKey, record);
     window._fbPush(window._fbRef(window._fbDb, `orders_history/${weekKey}`), record)
       .then(ref => console.log('[orderServed] push succeeded, key=', ref.key))
@@ -2856,8 +2865,22 @@ function renderOrderHistory() {
 
 
 /* ══════════════════════════════════════
-   CLEAR HISTORY MODAL
+   SYNC ORDER QUEUE FROM FIREBASE (real-time, ทุกเครื่องเห็นพร้อมกัน)
 ══════════════════════════════════════ */
+function syncOrderQueueFromDB() {
+  if (!window._fbDb) return;
+  console.log('[orders] attaching real-time listener...');
+  window._fbOnValue(window._fbRef(window._fbDb, 'orders'), (snapshot) => {
+    const data = snapshot.val() || {};
+    // สร้าง orderQueue ใหม่จาก Firebase ทุกครั้ง
+    orderQueue = Object.values(data).filter(o => o.status !== 'done');
+    orderQueue.sort((a, b) => a.id - b.id); // เรียงตามเวลาที่สั่ง
+    renderOrderQueue();
+    updateQueueBadge();
+  });
+}
+
+
 let _clearHistorySelectedKey = null;
 
 function openClearHistoryModal() {
