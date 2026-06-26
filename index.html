@@ -102,15 +102,17 @@
 
     } else {
       // Signed out — detach all Firebase listeners เพื่อป้องกัน permission_denied
-      if (window._fbDb && window._fbOff && window._fbRef) {
-        window._fbOff(window._fbRef(window._fbDb, 'orders'));
-        window._fbOff(window._fbRef(window._fbDb, 'orders_history'));
-        window._fbOff(window._fbRef(window._fbDb, 'users'));
-        window._fbOff(window._fbRef(window._fbDb, 'positions'));
-      }
+      if (typeof window._unsubUsers         === 'function') { window._unsubUsers();         window._unsubUsers = null; }
+      if (typeof window._unsubPositions     === 'function') { window._unsubPositions();     window._unsubPositions = null; }
+      if (typeof window._unsubOrders        === 'function') { window._unsubOrders();        window._unsubOrders = null; }
+      if (typeof window._unsubOrderHistory  === 'function') { window._unsubOrderHistory();  window._unsubOrderHistory = null; }
       window.googleUser = null;
+      orderQueue = [];
       setTimeout(() => {
-        if (typeof updateHeaderBar === 'function') updateHeaderBar();
+        if (typeof updateHeaderBar       === 'function') updateHeaderBar();
+        if (typeof renderOrderQueue      === 'function') renderOrderQueue();
+        if (typeof updateQueueBadge      === 'function') updateQueueBadge();
+        if (typeof applyPosPermissions   === 'function') applyPosPermissions();
       }, 100);
     }
   });
@@ -2261,7 +2263,7 @@ function googlePopupOverlayClick(e) {
 function syncStaffFromDB() {
   if (!window._fbDb) return;
   console.log('[users] attaching listener...');
-  window._fbOnValue(window._fbRef(window._fbDb, 'users'), (snapshot) => {
+  window._unsubUsers = window._fbOnValue(window._fbRef(window._fbDb, 'users'), (snapshot) => {
     console.log('[users] snapshot received. exists=', snapshot.exists());
     if (!snapshot.exists()) {
       staffList = [];
@@ -2288,7 +2290,7 @@ function syncStaffFromDB() {
 ══════════════════════════════════════ */
 function syncPositionsFromDB() {
   if (!window._fbDb) return;
-  window._fbOnValue(window._fbRef(window._fbDb, 'positions'), (snapshot) => {
+  window._unsubPositions = window._fbOnValue(window._fbRef(window._fbDb, 'positions'), (snapshot) => {
     if (snapshot.exists()) {
       const data = snapshot.val();
       // data is object keyed by push-id: { name, color }
@@ -2800,7 +2802,7 @@ function getRecentWeekKeys() {
 function syncOrderHistoryFromDB() {
   if (!window._fbDb) { console.warn('[orders_history] _fbDb not ready, skip sync'); return; }
   console.log('[orders_history] attaching listener...');
-  window._fbOnValue(window._fbRef(window._fbDb, 'orders_history'), (snapshot) => {
+  window._unsubOrderHistory = window._fbOnValue(window._fbRef(window._fbDb, 'orders_history'), (snapshot) => {
     const data = snapshot.val() || {};
     console.log('[orders_history] snapshot received. exists=', snapshot.exists(), 'raw data=', data);
     const recentKeys = getRecentWeekKeys();
@@ -2876,7 +2878,7 @@ function renderOrderHistory() {
 function syncOrderQueueFromDB() {
   if (!window._fbDb) return;
   console.log('[orders] attaching real-time listener...');
-  window._fbOnValue(window._fbRef(window._fbDb, 'orders'), (snapshot) => {
+  window._unsubOrders = window._fbOnValue(window._fbRef(window._fbDb, 'orders'), (snapshot) => {
     const data = snapshot.val() || {};
     // เก็บ Firebase key ไว้ใน fbKey เพื่อใช้ update/delete
     orderQueue = Object.entries(data)
