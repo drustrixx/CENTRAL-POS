@@ -2187,16 +2187,9 @@ function openGooglePopup() {
     }).catch(err => showToast('ออกจากระบบล้มเหลว: ' + err.message, true));
     return;
   }
-  // ใช้ redirect แทน popup เพราะ GitHub Pages มี COOP header บล็อก popup
-  if (window._fbSignInWithRedirect) {
-    window._fbSignInWithRedirect(window._fbAuth, window._fbProvider).catch(err => {
-      showToast('Login ล้มเหลว: ' + err.message, true);
-    });
-  } else {
-    window._fbSignInWithPopup(window._fbAuth, window._fbProvider).catch(err => {
-      showToast('Login ล้มเหลว: ' + err.message, true);
-    });
-  }
+  window._fbSignInWithPopup(window._fbAuth, window._fbProvider).catch(err => {
+    showToast('Login ล้มเหลว: ' + err.message, true);
+  });
 }
 
 function doSignOut() {
