@@ -42,6 +42,7 @@
   window._fbSignInWithRedirect = signInWithRedirect;
   window._fbGetRedirectResult = getRedirectResult;
   window._fbOff      = off;
+  window._fbSignOut  = signOut;   // ← Fix: expose signOut to global scope
 
   // ── Auth state listener ──
   // ── ดัก redirect result (สำหรับ GitHub Pages ที่ popup ถูก block) ──
@@ -2325,6 +2326,90 @@ function doSignOut() {
 
 // Keep simulateGoogleLogin stub so any leftover HTML onclick doesn't throw
 function simulateGoogleLogin() { openGooglePopup(); }
+
+/* ══════════════════════════════════════
+   CLEAR QUEUE MODAL FUNCTIONS
+══════════════════════════════════════ */
+var _clearQueueStatus = null;
+
+function openClearQueueModal() {
+  // อัปเดตจำนวนในแต่ละ status
+  if (window._fbDb && window.orderQueue) {
+    var cnt = { pending: 0, cooking: 0, ready: 0 };
+    window.orderQueue.forEach(function(o) { if (cnt[o.status] !== undefined) cnt[o.status]++; });
+    var ep = document.getElementById('cq-cnt-pending');
+    var ec = document.getElementById('cq-cnt-cooking');
+    var er = document.getElementById('cq-cnt-ready');
+    if (ep) ep.textContent = cnt.pending;
+    if (ec) ec.textContent = cnt.cooking;
+    if (er) er.textContent = cnt.ready;
+  }
+  // แสดง step 1, ซ่อน step 2
+  var s1 = document.getElementById('cq-step1');
+  var s2 = document.getElementById('cq-step2');
+  if (s1) s1.style.display = 'block';
+  if (s2) s2.style.display = 'none';
+  var overlay = document.getElementById('clear-queue-overlay');
+  if (overlay) overlay.style.display = 'flex';
+}
+
+function closeClearQueueModal() {
+  var overlay = document.getElementById('clear-queue-overlay');
+  if (overlay) overlay.style.display = 'none';
+  _clearQueueStatus = null;
+}
+
+function selectClearQueueStatus(status) {
+  _clearQueueStatus = status;
+  var s1 = document.getElementById('cq-step1');
+  var s2 = document.getElementById('cq-step2');
+  if (s1) s1.style.display = 'none';
+  if (s2) s2.style.display = 'block';
+  // สร้างรายการลูกค้าใน step 2
+  var list = document.getElementById('cq-customer-list');
+  if (list && window.orderQueue) {
+    var filtered = window.orderQueue.filter(function(o) { return o.status === status; });
+    if (filtered.length === 0) {
+      list.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:8px 0">ไม่มีออเดอร์ในกลุ่มนี้</div>';
+    } else {
+      list.innerHTML = filtered.map(function(o) {
+        return '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;">' +
+          '<span style="font-size:13px;color:var(--text)">' + (o.customerName || 'ไม่ระบุชื่อ') + '</span>' +
+          '<button onclick="confirmClearQueueOne(\'' + o.key + '\')" style="background:var(--red-dim);border:1px solid var(--red);color:var(--red);border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;font-family:inherit;">ลบ</button>' +
+        '</div>';
+      }).join('');
+    }
+  }
+}
+
+function confirmClearQueueOne(key) {
+  if (!window._fbDb || !key) return;
+  window._fbRemove(window._fbRef(window._fbDb, 'orders/' + key)).then(function() {
+    showToast('ลบออเดอร์แล้ว');
+    closeClearQueueModal();
+  }).catch(function(err) { showToast('เกิดข้อผิดพลาด: ' + err.message, true); });
+}
+
+function backToClearQueueStep1() {
+  var s1 = document.getElementById('cq-step1');
+  var s2 = document.getElementById('cq-step2');
+  if (s1) s1.style.display = 'block';
+  if (s2) s2.style.display = 'none';
+  _clearQueueStatus = null;
+}
+
+function confirmClearQueueAll() {
+  if (!window._fbDb || !_clearQueueStatus) return;
+  var toDelete = (window.orderQueue || []).filter(function(o) { return o.status === _clearQueueStatus; });
+  if (toDelete.length === 0) { showToast('ไม่มีออเดอร์ที่จะลบ'); closeClearQueueModal(); return; }
+  var promises = toDelete.map(function(o) {
+    return window._fbRemove(window._fbRef(window._fbDb, 'orders/' + o.key));
+  });
+  Promise.all(promises).then(function() {
+    showToast('เคลียร์ออเดอร์แล้ว (' + toDelete.length + ' รายการ)');
+    closeClearQueueModal();
+  }).catch(function(err) { showToast('เกิดข้อผิดพลาด: ' + err.message, true); });
+}
 function closeGooglePopup()    { document.getElementById('google-popup-overlay').classList.remove('open'); }
 function googlePopupOverlayClick(e) {
   if (e.target === document.getElementById('google-popup-overlay')) closeGooglePopup();
