@@ -2703,8 +2703,8 @@ function acceptOrder(id) {
   const o = orderQueue.find(x => x.id === id);
   if (!o) return;
   o.status = 'cooking';
-  if (window._fbDb) {
-    window._fbSet(window._fbRef(window._fbDb, `orders/${id}/status`), 'cooking');
+  if (window._fbDb && o.fbKey) {
+    window._fbSet(window._fbRef(window._fbDb, `orders/${o.fbKey}/status`), 'cooking');
   }
   renderOrderQueue();
   showToast(`รับออเดอร์ของ ${o.customer} แล้ว — กำลังทำ`);
@@ -2714,8 +2714,8 @@ function doneCooking(id) {
   const o = orderQueue.find(x => x.id === id);
   if (!o) return;
   o.status = 'ready';
-  if (window._fbDb) {
-    window._fbSet(window._fbRef(window._fbDb, `orders/${id}/status`), 'ready');
+  if (window._fbDb && o.fbKey) {
+    window._fbSet(window._fbRef(window._fbDb, `orders/${o.fbKey}/status`), 'ready');
   }
   renderOrderQueue();
   showToast(`ออเดอร์ ${o.customer} พร้อมเสิร์ฟแล้ว!`);
@@ -2748,8 +2748,8 @@ function orderServed(id) {
     ts
   };
   if (window._fbDb) {
-    // ลบออกจาก orders (queue) ก่อน
-    window._fbRemove(window._fbRef(window._fbDb, `orders/${o.id}`));
+    // ลบออกจาก orders (queue) ด้วย fbKey
+    if (o.fbKey) window._fbRemove(window._fbRef(window._fbDb, `orders/${o.fbKey}`));
     // บันทึกลง orders_history
     console.log('[orderServed] pushing to orders_history/' + weekKey, record);
     window._fbPush(window._fbRef(window._fbDb, `orders_history/${weekKey}`), record)
@@ -2878,9 +2878,11 @@ function syncOrderQueueFromDB() {
   console.log('[orders] attaching real-time listener...');
   window._fbOnValue(window._fbRef(window._fbDb, 'orders'), (snapshot) => {
     const data = snapshot.val() || {};
-    // สร้าง orderQueue ใหม่จาก Firebase ทุกครั้ง
-    orderQueue = Object.values(data).filter(o => o.status !== 'done');
-    orderQueue.sort((a, b) => a.id - b.id); // เรียงตามเวลาที่สั่ง
+    // เก็บ Firebase key ไว้ใน fbKey เพื่อใช้ update/delete
+    orderQueue = Object.entries(data)
+      .map(([fbKey, o]) => ({ ...o, fbKey }))
+      .filter(o => o.status !== 'done');
+    orderQueue.sort((a, b) => (a.id || 0) - (b.id || 0));
     renderOrderQueue();
     updateQueueBadge();
   });
