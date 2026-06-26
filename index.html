@@ -1610,7 +1610,7 @@ body.staff-no-admin .hdr-btn-admin {
         <button onclick="openClearQueueModal()" style="
           background:var(--red-dim);border:1px solid var(--red);color:var(--red);
           border-radius:8px;padding:5px 12px;font-size:12px;cursor:pointer;font-family:inherit;
-        ">🗑️ เคลียร์</button>
+        ">🗑️ เคลียร์ออเดอร์</button>
         <button class="admin-close-btn" onclick="closeOrderQueue()">&#x2715;</button>
       </div>
     </div>
@@ -2512,9 +2512,10 @@ function updateHeaderBar() {
   const role = u.role || 'VISITOR';
   const bc   = roleBadgeClass[role] || 'badge-visitor';
   const ic   = roleIcon[role] || '🌿';
+  const initial = (u.name||'?')[0].toUpperCase();
   const avatarHTML = u.photoURL
-    ? `<div class="hdr-avatar"><img src="${u.photoURL}" alt=""></div>`
-    : `<div class="hdr-avatar">${(u.name||'?')[0].toUpperCase()}</div>`;
+    ? `<div class="hdr-avatar"><img src="${u.photoURL}" alt="" onerror="this.parentElement.innerHTML='${initial}'"></div>`
+    : `<div class="hdr-avatar">${initial}</div>`;
   const firstName = (u.name || '').split(' ')[0];
   bar.innerHTML = `
     <div class="header-bar-logged">
