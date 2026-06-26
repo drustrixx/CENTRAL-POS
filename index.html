@@ -1922,8 +1922,10 @@ function renderStaff() {
     const ic = roleIcon[s.role] || '';
     // Can only edit someone whose rank is strictly lower than mine
     const canEditThis = canEdit && !isTop(s.role) && roleRank(s.role) > myRank;
-    // Roles available to assign = only roles strictly below my own rank (not equal), excluding VISITOR
-    const allowedRoles = positions.filter(p => roleRank(p.name) > myRank); // รวม VISITOR ด้วย
+    // Roles available to assign = strictly below my rank only (rank index > myRank)
+    const allowedRoles = roleOrder
+      .filter(r => roleRank(r) > myRank)  // ใช้ roleOrder แทน positions เพื่อความแม่นยำ
+      .map(r => ({ name: r }));
     const actions = !canEditThis
       ? `<span class="view-only-text">ดูอย่างเดียว</span>`
       : `<select class="staff-role-select" id="sel-${safeUid}" data-uid="${safeUid}">
