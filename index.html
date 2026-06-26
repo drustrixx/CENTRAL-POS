@@ -2216,8 +2216,14 @@ function googlePopupOverlayClick(e) {
 ══════════════════════════════════════ */
 function syncStaffFromDB() {
   if (!window._fbDb) return;
+  console.log('[users] attaching listener...');
   window._fbOnValue(window._fbRef(window._fbDb, 'users'), (snapshot) => {
-    if (!snapshot.exists()) return;
+    console.log('[users] snapshot received. exists=', snapshot.exists());
+    if (!snapshot.exists()) {
+      staffList = [];
+      renderStaff(); renderRanks(); renderPositions();
+      return;
+    }
     const data = snapshot.val();
     staffList = Object.entries(data).map(([uid, u]) => ({
       uid,
@@ -2225,6 +2231,7 @@ function syncStaffFromDB() {
       email: u.email || '',
       role:  u.role  || 'VISITOR'
     }));
+    console.log('[users] staffList loaded:', staffList.length, 'users');
     renderStaff();
     renderRanks();
     renderPositions();
