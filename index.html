@@ -3,6 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- Security: restrict where scripts/styles/connections can come from -->
+<meta http-equiv="Content-Security-Policy" content="
+  default-src 'self';
+  script-src 'self' 'unsafe-inline' https://www.gstatic.com https://apis.google.com;
+  style-src  'self' 'unsafe-inline' https://fonts.googleapis.com;
+  font-src   'self' https://fonts.gstatic.com;
+  connect-src 'self' https://*.firebaseio.com https://*.googleapis.com wss://*.firebaseio.com;
+  img-src 'self' data: https:;
+  frame-src https://accounts.google.com;
+">
 <title>Central Cafe — Japanese Dining POS</title>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
 <!-- Firebase SDKs -->
@@ -92,8 +102,9 @@
         updateHeaderBar();
         if (typeof showToast         === 'function') showToast('เข้าสู่ระบบสำเร็จ: ' + window.googleUser.name);
         if (typeof addHistory        === 'function') addHistory('Login: ' + window.googleUser.name + ' (' + user.email + ') | Role: ' + role);
-        if (typeof syncStaffFromDB   === 'function') syncStaffFromDB();
-        if (typeof syncPositionsFromDB === 'function') syncPositionsFromDB();
+        if (typeof syncStaffFromDB         === 'function') syncStaffFromDB();
+        if (typeof syncPositionsFromDB     === 'function') syncPositionsFromDB();
+        if (typeof syncOrderHistoryFromDB  === 'function') syncOrderHistoryFromDB();
         // First login ever (no fullName saved yet) — ask for it
         if (!fullName && typeof openFullNameModal === 'function') openFullNameModal();
       })(30);
@@ -2504,22 +2515,43 @@ function sendOrder() {
 }
 
 function _doSendOrder(customerName) {
+  // ── Security: must be logged-in staff ──
+  if (!window.googleUser || !window.googleUser.uid) {
+    showToast('กรุณาเข้าสู่ระบบก่อนส่งออเดอร์', true); return;
+  }
+  if (!canUsePos()) { showToast('คุณไม่มีสิทธิ์ส่งออเดอร์', true); return; }
+
+  // ── Sanitize customer name (strip HTML tags, limit length) ──
+  const safeCustomer = String(customerName).replace(/[<>"'`]/g, '').trim().slice(0, 60);
+  if (!safeCustomer) { showToast('ชื่อลูกค้าไม่ถูกต้อง', true); return; }
+
   const entries = Object.entries(order).filter(([,v]) => v.qty > 0);
   if (entries.length === 0) return;
   const sub = entries.reduce((s,[,v]) => s + v.price * v.qty, 0);
   const total = Math.round(sub * (1 - discountPct / 100));
+
+  // ── Validate total is a sane positive number ──
+  if (!Number.isFinite(total) || total < 0 || total > 9999999) {
+    showToast('ยอดรวมไม่ถูกต้อง', true); return;
+  }
+
   const now = new Date().toLocaleTimeString('th-TH', { hour:'2-digit', minute:'2-digit' });
-  const sender = window.googleUser ? window.googleUser.name : 'Staff';
+  const sender = window.googleUser.name || 'Staff';
 
   const queueItem = {
     id: Date.now(),
-    customer: customerName,
-    items: entries.map(([name, v]) => ({ name, qty: v.qty, price: v.price })),
+    customer: safeCustomer,
+    items: entries.map(([name, v]) => ({
+      name: String(name).replace(/[<>"'`]/g, '').slice(0, 80),
+      qty: Math.max(1, Math.floor(v.qty)),
+      price: Math.max(0, Number(v.price) || 0)
+    })),
     total,
     discount: discountPct,
     status: 'pending',
     time: now,
-    sender
+    sender,
+    senderUid: window.googleUser.uid   // audit trail
   };
 
   // Push to Firebase if available
@@ -2645,15 +2677,20 @@ function doneCooking(id) {
 }
 
 function orderServed(id) {
+  // ── Security: must be logged-in staff ──
+  if (!window.googleUser || !window.googleUser.uid) {
+    showToast('กรุณาเข้าสู่ระบบก่อน', true); return;
+  }
+  if (!canUsePos()) { showToast('คุณไม่มีสิทธิ์ยืนยันการเสิร์ฟ', true); return; }
+
   const idx = orderQueue.findIndex(x => x.id === id);
   if (idx === -1) return;
   const o = orderQueue[idx];
   o.status = 'done';
   orderQueue.splice(idx, 1);
-  completedOrders.unshift(o); // newest first (session view, not persisted form)
+  completedOrders.unshift(o);
   renderOrderQueue();
 
-  // Persist to Firebase under this week's bucket
   const ts = Date.now();
   const weekKey = getWeekKey(ts);
   const record = {
@@ -2661,6 +2698,8 @@ function orderServed(id) {
     items: o.items,
     total: o.total,
     time: o.time,
+    servedBy: window.googleUser.name,
+    servedByUid: window.googleUser.uid,   // audit trail
     ts
   };
   if (window._fbDb) {
@@ -2794,12 +2833,8 @@ renderPositions();
 renderHistory();
 applyPosPermissions();
 
-// Firebase init (module script) may finish after this script runs, so poll briefly until it's ready.
-(function waitForFirebaseThenSyncHistory(retries) {
-  if (window._fbDb) { syncOrderHistoryFromDB(); return; }
-  if (retries <= 0) return;
-  setTimeout(() => waitForFirebaseThenSyncHistory(retries - 1), 150);
-})(20);
+// syncOrderHistoryFromDB() is now called inside onAuthStateChanged (after login)
+// so it always runs with a valid auth token — no unauthenticated polling needed here.
 </script>
 </body>
 </html>
