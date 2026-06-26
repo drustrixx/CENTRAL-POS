@@ -1693,11 +1693,7 @@ function canUsePos()   { return ['CEO','CO CEO','MANAGER','STAFF','PART TIME'].i
 function canEditAdmin(){ return ['CEO','CO CEO','MANAGER'].includes(myRole()); }
 function canViewAdmin(){ return ['CEO','CO CEO','MANAGER'].includes(myRole()); }
 
-let staffList = [
-  { name:'Moonbin Kim',      email:'yest0816@gmail.com',      role:'CEO' },
-  { name:'Dustin Callis',    email:'gomepass123@gmail.com',   role:'CO CEO' },
-  { name:'Rayna Cymbeline',  email:'rattanawanyg@gmail.com',  role:'MANAGER' },
-];
+let staffList = [];  // โหลดจาก Firebase ใน syncStaffFromDB()
 
 let positions = [
   { name:'CEO',       color:'#22c55e' },
@@ -1910,6 +1906,15 @@ function renderStaff() {
   const canEdit = canEditAdmin();
   // ซ่อน VISITOR ออกจากรายชื่อพนักงาน
   const visibleStaff = staffList.filter(s => s.role !== 'VISITOR');
+
+  // ถ้ายังไม่มี uid แสดงว่ายังไม่ได้ sync จาก Firebase
+  const synced = staffList.some(s => s.uid);
+  if (!synced) {
+    document.getElementById('staffList').innerHTML =
+      `<div style="text-align:center;color:var(--muted);padding:24px;font-size:13px">⏳ กำลังโหลดข้อมูลพนักงาน...</div>`;
+    return;
+  }
+
   document.getElementById('staffList').innerHTML = visibleStaff.map((s) => {
     const safeUid = s.uid ? encodeURIComponent(s.uid) : '';
     const initials = s.name.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
