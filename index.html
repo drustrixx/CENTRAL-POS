@@ -10,7 +10,7 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { getAuth, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, GoogleAuthProvider, onAuthStateChanged }
     from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-  import { getDatabase, ref, get, set, remove, push, onValue }
+  import { getDatabase, ref, get, set, remove, push, onValue, off }
     from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
   const firebaseConfig = {
@@ -41,7 +41,7 @@
   window._fbSignInWithPopup = signInWithPopup;
   window._fbSignInWithRedirect = signInWithRedirect;
   window._fbGetRedirectResult = getRedirectResult;
-  window._fbSignOut  = signOut;
+  window._fbOff      = off;
 
   // ── Auth state listener ──
   // ── ดัก redirect result (สำหรับ GitHub Pages ที่ popup ถูก block) ──
@@ -101,7 +101,13 @@
       })(30);
 
     } else {
-      // Signed out
+      // Signed out — detach all Firebase listeners เพื่อป้องกัน permission_denied
+      if (window._fbDb && window._fbOff && window._fbRef) {
+        window._fbOff(window._fbRef(window._fbDb, 'orders'));
+        window._fbOff(window._fbRef(window._fbDb, 'orders_history'));
+        window._fbOff(window._fbRef(window._fbDb, 'users'));
+        window._fbOff(window._fbRef(window._fbDb, 'positions'));
+      }
       window.googleUser = null;
       setTimeout(() => {
         if (typeof updateHeaderBar === 'function') updateHeaderBar();
