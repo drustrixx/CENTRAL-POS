@@ -1489,7 +1489,7 @@ body.staff-no-admin .hdr-btn-admin {
     <div class="tab-panel" id="tab-orderhistory">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
         <div class="panel-section-title" style="margin-bottom:0">&#x2728; ประวัติออเดอร์ที่เสิร์ฟแล้ว</div>
-        <button onclick="openClearHistoryModal()" style="
+        <button onclick="openClearHistoryModal()" id="btn-clear-history" style="
           background:var(--red-dim);border:1px solid var(--red);color:var(--red);
           border-radius:8px;padding:6px 14px;font-size:12px;cursor:pointer;
           font-family:inherit;transition:.2s;
@@ -2372,6 +2372,7 @@ function updateAdminUserCard() {
       avatarEl.textContent = (window.googleUser.name || '?')[0].toUpperCase();
     }
   }
+  // แสดงปุ่มเคลียร์ประวัติเสมอ — สิทธิ์เช็คใน openClearHistoryModal()
 }
 
 // Override saveStaff to also write role back to DB
@@ -2860,7 +2861,8 @@ function renderOrderHistory() {
 let _clearHistorySelectedKey = null;
 
 function openClearHistoryModal() {
-  if (!canEditAdmin()) { showToast('ไม่มีสิทธิ์เคลียร์ประวัติ', true); return; }
+  const r = myRole();
+  if (r !== 'CEO' && r !== 'CO CEO') { showToast('เฉพาะ CEO และ CO CEO เท่านั้น', true); return; }
   _clearHistorySelectedKey = null;
   const confirmBtn = document.getElementById('clear-history-confirm-btn');
   confirmBtn.style.opacity = '.4';
