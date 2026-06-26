@@ -720,7 +720,8 @@ body.staff-no-admin .hdr-btn-admin {
 
 /* Tab panels */
 .tab-panel { display: none; }
-.tab-panel.active { display: flex; flex-direction: column; overflow-y: auto; flex: 1; min-height: 0; }
+.tab-panel.active { display: flex; flex-direction: column; overflow-y: auto; flex: 1; min-height: 0; scrollbar-width: none; }
+.tab-panel.active::-webkit-scrollbar { display: none; }
 
 .panel-section-title {
   font-size: 13px;
@@ -1460,7 +1461,7 @@ body.staff-no-admin .hdr-btn-admin {
             <input type="text" id="visitorSearchInput" placeholder="พิมพ์ชื่อหรืออีเมล..." oninput="renderVisitorSearch()">
           </div>
         </div>
-        <div id="visitorSearchResults" style="display:flex;flex-direction:column;gap:8px;max-height:200px;overflow-y:auto;"></div>
+        <div id="visitorSearchResults" style="display:flex;flex-direction:column;gap:8px;max-height:200px;overflow-y:auto;scrollbar-width:none;"></div>
       </div>
 
 
