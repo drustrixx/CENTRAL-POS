@@ -2333,17 +2333,20 @@ function simulateGoogleLogin() { openGooglePopup(); }
 var _clearQueueStatus = null;
 
 function openClearQueueModal() {
-  // อัปเดตจำนวนในแต่ละ status
-  if (window._fbDb && window.orderQueue) {
-    var cnt = { pending: 0, cooking: 0, ready: 0 };
-    window.orderQueue.forEach(function(o) { if (cnt[o.status] !== undefined) cnt[o.status]++; });
-    var ep = document.getElementById('cq-cnt-pending');
-    var ec = document.getElementById('cq-cnt-cooking');
-    var er = document.getElementById('cq-cnt-ready');
-    if (ep) ep.textContent = cnt.pending;
-    if (ec) ec.textContent = cnt.cooking;
-    if (er) er.textContent = cnt.ready;
+  // เช็คสิทธิ์: เฉพาะ MANAGER / CO CEO / CEO / STAFF เท่านั้น
+  var r = myRole();
+  if (!['CEO','CO CEO','MANAGER','STAFF'].includes(r)) {
+    showToast('ไม่มีสิทธิ์เคลียร์ออเดอร์', true); return;
   }
+  // อัปเดตจำนวนในแต่ละ status — ใช้ orderQueue โดยตรง (ไม่ใช่ window.orderQueue)
+  var cnt = { pending: 0, cooking: 0, ready: 0 };
+  orderQueue.forEach(function(o) { if (cnt[o.status] !== undefined) cnt[o.status]++; });
+  var ep = document.getElementById('cq-cnt-pending');
+  var ec = document.getElementById('cq-cnt-cooking');
+  var er = document.getElementById('cq-cnt-ready');
+  if (ep) ep.textContent = cnt.pending;
+  if (ec) ec.textContent = cnt.cooking;
+  if (er) er.textContent = cnt.ready;
   // แสดง step 1, ซ่อน step 2
   var s1 = document.getElementById('cq-step1');
   var s2 = document.getElementById('cq-step2');
@@ -2365,28 +2368,42 @@ function selectClearQueueStatus(status) {
   var s2 = document.getElementById('cq-step2');
   if (s1) s1.style.display = 'none';
   if (s2) s2.style.display = 'block';
-  // สร้างรายการลูกค้าใน step 2
+  // สร้างรายการลูกค้าใน step 2 — ใช้ orderQueue โดยตรง
   var list = document.getElementById('cq-customer-list');
-  if (list && window.orderQueue) {
-    var filtered = window.orderQueue.filter(function(o) { return o.status === status; });
+  if (list) {
+    var filtered = orderQueue.filter(function(o) { return o.status === status; });
     if (filtered.length === 0) {
       list.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:8px 0">ไม่มีออเดอร์ในกลุ่มนี้</div>';
     } else {
       list.innerHTML = filtered.map(function(o) {
-        return '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;">' +
-          '<span style="font-size:13px;color:var(--text)">' + (o.customerName || 'ไม่ระบุชื่อ') + '</span>' +
-          '<button onclick="confirmClearQueueOne(\'' + o.key + '\')" style="background:var(--red-dim);border:1px solid var(--red);color:var(--red);border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;font-family:inherit;">ลบ</button>' +
+        var itemStr = (o.items || []).map(function(i) { return i.name + ' x' + i.qty; }).join(', ');
+        // ใช้ o.fbKey (Firebase key จริง) สำหรับการลบ — escape ด้วย encodeURIComponent เพื่อความปลอดภัย
+        var safeKey = o.fbKey || '';
+        return '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;">' +
+          '<div style="display:flex;justify-content:space-between;align-items:center">' +
+            '<span style="font-size:13px;font-weight:600;color:var(--text)">👤 ' + (o.customer || 'ไม่ระบุชื่อ') + '</span>' +
+            '<button onclick="confirmClearQueueOne(\'' + safeKey + '\')" style="background:var(--red-dim);border:1px solid var(--red);color:var(--red);border-radius:6px;padding:4px 12px;font-size:11px;cursor:pointer;font-family:inherit;white-space:nowrap;">🗑️ ลบ</button>' +
+          '</div>' +
+          '<div style="font-size:11px;color:var(--muted)">' + itemStr + '</div>' +
+          '<div style="font-size:11px;color:var(--accent2)">' + (o.total || 0).toLocaleString() + ' ฿ · ' + (o.time || '') + '</div>' +
         '</div>';
       }).join('');
     }
   }
 }
 
-function confirmClearQueueOne(key) {
-  if (!window._fbDb || !key) return;
-  window._fbRemove(window._fbRef(window._fbDb, 'orders/' + key)).then(function() {
+function confirmClearQueueOne(fbKey) {
+  if (!['CEO','CO CEO','MANAGER','STAFF'].includes(myRole())) {
+    showToast('ไม่มีสิทธิ์ลบออเดอร์', true); return;
+  }
+  if (!window._fbDb || !fbKey) { showToast('ไม่พบ key ออเดอร์', true); return; }
+  window._fbRemove(window._fbRef(window._fbDb, 'orders/' + fbKey)).then(function() {
     showToast('ลบออเดอร์แล้ว');
-    closeClearQueueModal();
+    // รีเฟรช list ใน step 2 (ไม่ปิด modal ให้ลบต่อได้)
+    selectClearQueueStatus(_clearQueueStatus);
+    // ถ้าไม่มีออเดอร์เหลือในกลุ่มนี้แล้ว — ปิด modal
+    var remaining = orderQueue.filter(function(o) { return o.status === _clearQueueStatus; });
+    if (remaining.length === 0) closeClearQueueModal();
   }).catch(function(err) { showToast('เกิดข้อผิดพลาด: ' + err.message, true); });
 }
 
@@ -2399,11 +2416,14 @@ function backToClearQueueStep1() {
 }
 
 function confirmClearQueueAll() {
+  if (!['CEO','CO CEO','MANAGER','STAFF'].includes(myRole())) {
+    showToast('ไม่มีสิทธิ์ลบออเดอร์', true); return;
+  }
   if (!window._fbDb || !_clearQueueStatus) return;
-  var toDelete = (window.orderQueue || []).filter(function(o) { return o.status === _clearQueueStatus; });
+  var toDelete = orderQueue.filter(function(o) { return o.status === _clearQueueStatus; });
   if (toDelete.length === 0) { showToast('ไม่มีออเดอร์ที่จะลบ'); closeClearQueueModal(); return; }
   var promises = toDelete.map(function(o) {
-    return window._fbRemove(window._fbRef(window._fbDb, 'orders/' + o.key));
+    return window._fbRemove(window._fbRef(window._fbDb, 'orders/' + o.fbKey));
   });
   Promise.all(promises).then(function() {
     showToast('เคลียร์ออเดอร์แล้ว (' + toDelete.length + ' รายการ)');
