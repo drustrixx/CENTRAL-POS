@@ -1936,6 +1936,11 @@ function closeAdmin() { document.getElementById('admin-overlay').classList.remov
 function overlayClick(e) { if (e.target === document.getElementById('admin-overlay')) closeAdmin(); }
 
 function switchTab(name, btn) {
+  // MANAGER เห็นแท็บประวัติออเดอร์แต่เข้าไม่ได้
+  if (name === 'orderhistory' && myRole() === 'MANAGER') {
+    showToast('MANAGER ไม่มีสิทธิ์เข้าดูประวัติออเดอร์', true);
+    return;
+  }
   document.querySelectorAll('.admin-tab').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
   btn.classList.add('active');
@@ -2582,6 +2587,27 @@ function applyPosPermissions() {
   const role = myRole();
   document.body.classList.toggle('visitor-mode', role === 'VISITOR');
   document.body.classList.toggle('staff-no-admin', ['STAFF', 'PART TIME'].includes(role));
+
+  // MANAGER: เห็นแท็บประวัติออเดอร์แต่สีจาง + คลิกไม่ได้
+  const histTab = document.querySelector('.admin-tab[data-tab="orderhistory"]');
+  if (histTab) {
+    if (role === 'MANAGER') {
+      histTab.style.opacity = '0.38';
+      histTab.style.cursor = 'not-allowed';
+      histTab.title = 'MANAGER ไม่มีสิทธิ์เข้าดูประวัติออเดอร์';
+    } else {
+      histTab.style.opacity = '';
+      histTab.style.cursor = '';
+      histTab.title = '';
+    }
+  }
+
+  // ปุ่มเคลียร์ออเดอร์: CEO, CO CEO, MANAGER, STAFF เท่านั้น (ไม่รวม PART TIME, VISITOR)
+  const clearQBtn = document.querySelector('#order-queue-overlay button[onclick="openClearQueueModal()"]');
+  if (clearQBtn) {
+    const canClearQ = ['CEO', 'CO CEO', 'MANAGER', 'STAFF'].includes(role);
+    clearQBtn.style.display = canClearQ ? '' : 'none';
+  }
 }
 
 
