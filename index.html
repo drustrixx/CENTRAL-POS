@@ -96,7 +96,10 @@
         if (typeof syncStaffFromDB         === 'function') syncStaffFromDB();
         if (typeof syncPositionsFromDB     === 'function') syncPositionsFromDB();
         if (typeof syncOrderQueueFromDB    === 'function') syncOrderQueueFromDB();
-        if (typeof syncOrderHistoryFromDB  === 'function') syncOrderHistoryFromDB();
+        // orders_history — เฉพาะ CEO / CO CEO / MANAGER เท่านั้นที่มีสิทธิ์อ่าน
+        if (['CEO','CO CEO','MANAGER'].includes(role)) {
+          if (typeof syncOrderHistoryFromDB === 'function') syncOrderHistoryFromDB();
+        }
         if (typeof syncActivityLogFromDB   === 'function') syncActivityLogFromDB();
         // First login ever (no fullName saved yet) — ask for it
         if (!fullName && typeof openFullNameModal === 'function') openFullNameModal();
@@ -325,6 +328,14 @@ body { font-family: 'Sarabun', sans-serif; background: var(--bg); color: var(--t
   background: linear-gradient(135deg, var(--accent2), var(--accent2));
   box-shadow: 0 3px 12px rgba(241,196,15,.35);
 }
+
+/* NOT LOGGED IN + VISITOR lock — view only, no interactions */
+body.not-logged-in .menu-card-btn,
+body.not-logged-in .order-btn,
+body.not-logged-in .btn-remove-item,
+body.not-logged-in .hdr-btn-admin,
+body.not-logged-in .btn-order-queue { opacity: .45; pointer-events: none; cursor: not-allowed; }
+body.not-logged-in .menu-card { cursor: default; }
 
 /* VISITOR lock — view only, no interactions */
 body.visitor-mode .menu-card-btn,
@@ -1466,7 +1477,7 @@ body.staff-no-admin .hdr-btn-admin {
     <div class="admin-tabs">
       <button class="admin-tab active" data-tab="staff" onclick="switchTab('staff',this)">&#x1F465; พนักงาน</button>
       <button class="admin-tab" data-tab="positions" onclick="switchTab('positions',this)">&#x1F4CB; ตำแหน่ง</button>
-      <button class="admin-tab" data-tab="orderhistory" onclick="switchTab('orderhistory',this)">&#x1F9FE; ประวัติออเดอร์</button>
+      <button class="admin-tab" id="tab-btn-orderhistory" data-tab="orderhistory" onclick="switchTab('orderhistory',this)">&#x1F9FE; ประวัติออเดอร์</button>
     </div>
 
     <!-- ── TAB: STAFF ── -->
@@ -1614,7 +1625,7 @@ body.staff-no-admin .hdr-btn-admin {
     <div class="order-queue-header">
       <div class="order-queue-title">&#127857; รายการออเดอร์</div>
       <div style="display:flex;gap:8px;align-items:center">
-        <button onclick="openClearQueueModal()" style="
+        <button id="btn-clear-queue" onclick="openClearQueueModal()" style="
           background:var(--red-dim);border:1px solid var(--red);color:var(--red);
           border-radius:8px;padding:5px 12px;font-size:12px;cursor:pointer;font-family:inherit;
         ">🗑️ เคลียร์ออเดอร์</button>
@@ -1930,15 +1941,16 @@ function openAdmin()  {
   document.getElementById('admin-overlay').classList.add('open');
   updateAdminUserCard();
   applyAdminPermissions();
+  applyHistoryTabVisibility();
   renderVisitorSearch();
 }
 function closeAdmin() { document.getElementById('admin-overlay').classList.remove('open'); }
 function overlayClick(e) { if (e.target === document.getElementById('admin-overlay')) closeAdmin(); }
 
 function switchTab(name, btn) {
-  // MANAGER เห็นแท็บประวัติออเดอร์แต่เข้าไม่ได้
-  if (name === 'orderhistory' && myRole() === 'MANAGER') {
-    showToast('MANAGER ไม่มีสิทธิ์เข้าดูประวัติออเดอร์', true);
+  // MANAGER เห็นแท็บ orderhistory แต่คลิกไม่ได้
+  if (name === 'orderhistory' && !['CEO','CO CEO'].includes(myRole())) {
+    showToast('เฉพาะ CEO และ CO CEO เท่านั้นที่เข้าถึงประวัติออเดอร์ได้', true);
     return;
   }
   document.querySelectorAll('.admin-tab').forEach(b => b.classList.remove('active'));
@@ -2056,12 +2068,18 @@ function renderStaff() {
     const allowedRoles = roleOrder
       .filter(r => roleRank(r) > myRank)  // ใช้ roleOrder แทน positions เพื่อความแม่นยำ
       .map(r => ({ name: r }));
+    // ปุ่ม Reset Role → VISITOR: เฉพาะ CEO/CO CEO เท่านั้น และเฉพาะ role ที่ต่ำกว่า
+    const canResetRole = ['CEO','CO CEO'].includes(myR) && !isTop(s.role) && roleRank(s.role) > myRank;
+    const resetBtn = canResetRole
+      ? `<button class="btn-reset-visitor" onclick="resetToVisitorByUid('${safeUid}')" title="Reset เป็น Visitor">↩</button>`
+      : '';
     const actions = !canEditThis
       ? `<span class="view-only-text">ดูอย่างเดียว</span>`
       : `<select class="staff-role-select" id="sel-${safeUid}" data-uid="${safeUid}">
            ${allowedRoles.map(p=>`<option${s.role===p.name?' selected':''}>${p.name}</option>`).join('')}
          </select>
-         <button class="btn-save" onclick="saveStaffByUid('${safeUid}')">บันทึก</button>`;
+         <button class="btn-save" onclick="saveStaffByUid('${safeUid}')">บันทึก</button>
+         ${resetBtn}`;
     return `
       <div class="staff-card">
         <div class="staff-avatar">${initials}</div>
@@ -2124,7 +2142,7 @@ function saveStaffByUid(uid) {
 }
 
 function deleteStaffByUid(uid) {
-  if (!canEditAdmin()) { showToast('ไม่มีสิทธิ์ลบ', true); return; }
+  if (!['CEO','CO CEO'].includes(myRole())) { showToast('เฉพาะ CEO และ CO CEO เท่านั้นที่ลบ Role ได้', true); return; }
   const s = _staffByUid(uid);
   if (!s) { showToast('ไม่พบข้อมูลพนักงาน', true); return; }
   if (roleRank(s.role) <= roleRank(myRole())) {
@@ -2158,7 +2176,7 @@ function deleteStaffByUid(uid) {
 
 /* Reset role กลับเป็น VISITOR — ย้ายคนกลับไปช่อง "ค้นหา Visitor & ให้ Role" */
 function resetToVisitorByUid(uid) {
-  if (!canEditAdmin()) { showToast('ไม่มีสิทธิ์แก้ไข', true); return; }
+  if (!['CEO','CO CEO'].includes(myRole())) { showToast('เฉพาะ CEO และ CO CEO เท่านั้นที่ Reset Role ได้', true); return; }
   const s = _staffByUid(uid);
   if (!s) { showToast('ไม่พบข้อมูลพนักงาน', true); return; }
   if (roleRank(s.role) <= roleRank(myRole())) {
@@ -2386,7 +2404,7 @@ function simulateGoogleLogin() { openGooglePopup(); }
 var _clearQueueStatus = null;
 
 function openClearQueueModal() {
-  // เช็คสิทธิ์: เฉพาะ MANAGER / CO CEO / CEO / STAFF เท่านั้น
+  // เช็คสิทธิ์: เฉพาะ CEO / CO CEO / MANAGER / STAFF เท่านั้น (ไม่รวม PART TIME)
   var r = myRole();
   if (!['CEO','CO CEO','MANAGER','STAFF'].includes(r)) {
     showToast('ไม่มีสิทธิ์เคลียร์ออเดอร์', true); return;
@@ -2584,30 +2602,29 @@ function updateHeaderBar() {
 }
 
 function applyPosPermissions() {
+  const notLoggedIn = !window.googleUser;
+  // ไม่ได้ login หรือ VISITOR — ล็อคทุกปุ่ม interactive
+  document.body.classList.toggle('not-logged-in', notLoggedIn);
   const role = myRole();
   document.body.classList.toggle('visitor-mode', role === 'VISITOR');
   document.body.classList.toggle('staff-no-admin', ['STAFF', 'PART TIME'].includes(role));
-
-  // MANAGER: เห็นแท็บประวัติออเดอร์แต่สีจาง + คลิกไม่ได้
-  const histTab = document.querySelector('.admin-tab[data-tab="orderhistory"]');
-  if (histTab) {
-    if (role === 'MANAGER') {
-      histTab.style.opacity = '0.38';
-      histTab.style.cursor = 'not-allowed';
-      histTab.title = 'MANAGER ไม่มีสิทธิ์เข้าดูประวัติออเดอร์';
-    } else {
-      histTab.style.opacity = '';
-      histTab.style.cursor = '';
-      histTab.title = '';
-    }
+  applyHistoryTabVisibility();
+  // ปุ่มเคลียร์ออเดอร์: เฉพาะ CEO / CO CEO / MANAGER / STAFF เท่านั้น
+  const clearQueueBtn = document.getElementById('btn-clear-queue');
+  if (clearQueueBtn) {
+    const canClear = ['CEO','CO CEO','MANAGER','STAFF'].includes(role);
+    clearQueueBtn.style.display = canClear ? '' : 'none';
   }
+}
 
-  // ปุ่มเคลียร์ออเดอร์: CEO, CO CEO, MANAGER, STAFF เท่านั้น (ไม่รวม PART TIME, VISITOR)
-  const clearQBtn = document.querySelector('#order-queue-overlay button[onclick="openClearQueueModal()"]');
-  if (clearQBtn) {
-    const canClearQ = ['CEO', 'CO CEO', 'MANAGER', 'STAFF'].includes(role);
-    clearQBtn.style.display = canClearQ ? '' : 'none';
-  }
+/* แท็บ orderhistory — MANAGER เห็นแต่สีจาง/คลิกไม่ได้, CEO/CO CEO เห็นปกติ */
+function applyHistoryTabVisibility() {
+  const btn = document.getElementById('tab-btn-orderhistory');
+  if (!btn) return;
+  const isCeoLevel = ['CEO','CO CEO'].includes(myRole());
+  btn.style.opacity        = isCeoLevel ? '1' : '0.4';
+  btn.style.cursor         = isCeoLevel ? 'pointer' : 'not-allowed';
+  btn.style.pointerEvents  = 'auto'; // ยังต้องรับ click เพื่อแสดง toast
 }
 
 
@@ -2880,6 +2897,7 @@ function _doSendOrder(customerName) {
    ORDER QUEUE UI
 ══════════════════════════════════════ */
 function openOrderQueue() {
+  if (!window.googleUser || myRole() === 'VISITOR') { showToast('กรุณาเข้าสู่ระบบก่อนดูรายการออเดอร์', true); return; }
   document.getElementById('order-queue-overlay').classList.add('open');
   renderOrderQueue();
 }
