@@ -97,6 +97,7 @@
         if (typeof syncPositionsFromDB     === 'function') syncPositionsFromDB();
         if (typeof syncOrderQueueFromDB    === 'function') syncOrderQueueFromDB();
         if (typeof syncOrderHistoryFromDB  === 'function') syncOrderHistoryFromDB();
+        if (typeof syncActivityLogFromDB   === 'function') syncActivityLogFromDB();
         // First login ever (no fullName saved yet) — ask for it
         if (!fullName && typeof openFullNameModal === 'function') openFullNameModal();
       })(30);
@@ -107,8 +108,10 @@
       if (typeof window._unsubPositions     === 'function') { window._unsubPositions();     window._unsubPositions = null; }
       if (typeof window._unsubOrders        === 'function') { window._unsubOrders();        window._unsubOrders = null; }
       if (typeof window._unsubOrderHistory  === 'function') { window._unsubOrderHistory();  window._unsubOrderHistory = null; }
+      if (typeof window._unsubActivityLog   === 'function') { window._unsubActivityLog();   window._unsubActivityLog  = null; }
       window.googleUser = null;
-      orderQueue = [];
+      orderQueue  = [];
+      historyLog  = [];
       setTimeout(() => {
         if (typeof updateHeaderBar       === 'function') updateHeaderBar();
         if (typeof renderOrderQueue      === 'function') renderOrderQueue();
@@ -2267,17 +2270,55 @@ function deletePosition(i) {
   });
 }
 
-/* — HISTORY — */
+/* — HISTORY (Realtime Firebase) — */
 function addHistory(text) {
   const now = new Date();
   const time = now.toLocaleTimeString('th-TH', { hour:'2-digit', minute:'2-digit' });
-  historyLog.unshift({ text, time });
-  renderHistory();
+  const ts   = Date.now();
+  const who  = (window.googleUser && window.googleUser.name) || 'ระบบ';
+
+  // Push ขึ้น Firebase /activity_log (ทุกคนเห็นพร้อมกัน)
+  if (window._fbDb) {
+    window._fbPush(window._fbRef(window._fbDb, 'activity_log'), { text, time, ts, who })
+      .catch(err => console.error('[activity_log] push failed:', err));
+  } else {
+    // Firebase ยังไม่พร้อม — เก็บ local ชั่วคราว
+    historyLog.unshift({ text, time, who });
+    renderHistory();
+  }
+}
+
+/* ══════════════════════════════════════
+   SYNC ACTIVITY LOG FROM FIREBASE (realtime, ทุกคนเห็นพร้อมกัน)
+══════════════════════════════════════ */
+function syncActivityLogFromDB() {
+  if (!window._fbDb) { console.warn('[activity_log] _fbDb not ready, skip'); return; }
+  console.log('[activity_log] attaching listener...');
+  // โหลดแค่ 100 รายการล่าสุด เพื่อไม่ให้ UI หนัก
+  const { query, limitToLast, orderByChild } = window._fbQuery
+    ? window._fbQuery
+    : {};
+
+  // ใช้ ref ตรงๆ แล้วกรอง client-side (safe กว่า — ไม่ต้องการ index)
+  window._unsubActivityLog = window._fbOnValue(
+    window._fbRef(window._fbDb, 'activity_log'),
+    (snapshot) => {
+      const data = snapshot.val() || {};
+      const all  = Object.values(data);
+      // เรียงตาม ts ล่าสุดขึ้นก่อน แล้วตัดแค่ 100 รายการ
+      all.sort((a, b) => (b.ts || 0) - (a.ts || 0));
+      historyLog = all.slice(0, 100);
+      renderHistory();
+    },
+    (err) => {
+      console.error('[activity_log] read failed:', err);
+    }
+  );
 }
 
 function renderHistory() {
   const el = document.getElementById('historyContainer');
-  if (!el) return; // no general history-log panel in current UI — nothing to render
+  if (!el) return;
   if (historyLog.length === 0) {
     el.innerHTML = '<div class="history-empty">ยังไม่มีประวัติการดำเนินการ</div>';
     return;
@@ -2285,8 +2326,11 @@ function renderHistory() {
   el.innerHTML = `<div class="history-list">${
     historyLog.map(h => `
       <div class="history-item">
-        <span>${h.text}</span>
-        <small style="color:#4a3820">${h.time}</small>
+        <div style="display:flex;flex-direction:column;gap:2px;flex:1;min-width:0">
+          <span>${h.text}</span>
+          ${h.who ? `<small style="color:var(--muted);font-size:10px">👤 ${h.who}</small>` : ''}
+        </div>
+        <small style="color:#4a3820;flex-shrink:0;margin-left:8px">${h.time}</small>
       </div>`).join('')
   }</div>`;
 }
