@@ -71,9 +71,10 @@
       } else {
         // First-time login — create record with VISITOR role
         await set(ref(db, `users/${user.uid}`), {
-          name:  user.displayName,
-          email: user.email,
-          role:  'VISITOR'
+          name:     user.displayName,
+          email:    user.email,
+          role:     'VISITOR',
+          fullName: ''          // placeholder; will be filled by the name modal
         });
       }
       window.googleUser.role = role;
@@ -1609,9 +1610,19 @@ body.staff-no-admin .hdr-btn-admin {
   <div class="customer-modal">
     <h3>📝 กรอกชื่อ-นามสกุล</h3>
     <p>กรุณากรอกชื่อ-นามสกุลจริงของคุณ เพื่อใช้แสดงในระบบ (กรอกครั้งเดียว)</p>
-    <div class="customer-input-wrap">
-      <input type="text" id="fullNameInput" placeholder="ชื่อ นามสกุล" autocomplete="off"
-        onkeydown="handleFullNameKey(event)">
+    <div class="customer-input-wrap" style="display:flex;flex-direction:column;gap:10px;">
+      <input type="text" id="fullNameFirstInput" placeholder="ชื่อจริง" autocomplete="given-name"
+        onkeydown="handleFullNameKey(event)"
+        style="width:100%;padding:12px 14px;border-radius:10px;border:1.5px solid var(--border);
+               background:var(--surface2);color:var(--text);font-family:'Sarabun',sans-serif;
+               font-size:15px;outline:none;transition:border-color .2s;"
+        onfocus="this.style.borderColor='var(--accent2)'" onblur="this.style.borderColor='var(--border)'">
+      <input type="text" id="fullNameLastInput" placeholder="นามสกุล" autocomplete="family-name"
+        onkeydown="handleFullNameKey(event)"
+        style="width:100%;padding:12px 14px;border-radius:10px;border:1.5px solid var(--border);
+               background:var(--surface2);color:var(--text);font-family:'Sarabun',sans-serif;
+               font-size:15px;outline:none;transition:border-color .2s;"
+        onfocus="this.style.borderColor='var(--accent2)'" onblur="this.style.borderColor='var(--border)'">
     </div>
     <div class="customer-modal-btns">
       <button class="btn-customer-ok" style="flex:1" onclick="confirmFullName()">✅ บันทึกชื่อ</button>
@@ -2518,7 +2529,7 @@ function syncStaffFromDB() {
     const data = snapshot.val();
     staffList = Object.entries(data).map(([uid, u]) => ({
       uid,
-      name:  u.fullName || u.name  || 'Unknown',
+      name:  u.fullName ? u.fullName : (u.name && !u.name.includes('@') ? u.name : '(รอกรอกชื่อ)'),
       email: u.email || '',
       role:  u.role  || 'VISITOR'
     }));
@@ -2713,19 +2724,30 @@ function openFullNameModal() {
   const overlay = document.getElementById('fullname-modal-overlay');
   if (!overlay) return;
   overlay.classList.add('open');
-  const inp = document.getElementById('fullNameInput');
-  inp.value = '';
-  setTimeout(() => inp.focus(), 50);
+  const inp1 = document.getElementById('fullNameFirstInput');
+  const inp2 = document.getElementById('fullNameLastInput');
+  if (inp1) inp1.value = '';
+  if (inp2) inp2.value = '';
+  setTimeout(() => inp1 && inp1.focus(), 50);
 }
 
 function handleFullNameKey(e) {
-  if (e.key === 'Enter') confirmFullName();
+  if (e.key === 'Enter') {
+    if (e.target.id === 'fullNameFirstInput') {
+      // Move focus to surname field
+      const inp2 = document.getElementById('fullNameLastInput');
+      if (inp2) { e.preventDefault(); inp2.focus(); }
+    } else {
+      confirmFullName();
+    }
+  }
 }
 
 function confirmFullName() {
-  const inp = document.getElementById('fullNameInput');
-  const name = inp.value.trim();
-  if (!name) { showToast('กรุณากรอกชื่อ-นามสกุล', true); return; }
+  const first = (document.getElementById('fullNameFirstInput')?.value || '').trim();
+  const last  = (document.getElementById('fullNameLastInput')?.value  || '').trim();
+  const name  = first + (last ? ' ' + last : '');
+  if (!first) { showToast('กรุณากรอกชื่อจริง', true); return; }
   if (!window.googleUser || !window.googleUser.uid) { showToast('ยังไม่ได้เข้าสู่ระบบ', true); return; }
 
   const uid = window.googleUser.uid;
