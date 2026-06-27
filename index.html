@@ -1635,6 +1635,31 @@ body.staff-no-admin .hdr-btn-admin {
 <!-- Toast -->
 <div class="toast" id="toast"></div>
 
+<!-- ── ACCESS DENIED MODAL ── -->
+<div id="access-denied-overlay" onclick="if(event.target===this)closeAccessDeniedModal()" style="
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);
+  z-index:99999;align-items:center;justify-content:center;
+">
+  <div style="
+    background:var(--surface);border:1px solid var(--border-bright);border-radius:20px;
+    padding:32px 28px 24px;width:320px;max-width:90vw;text-align:center;
+    box-shadow:0 24px 60px rgba(0,0,0,.7);
+  ">
+    <div style="font-size:40px;margin-bottom:12px">🔒</div>
+    <div style="font-size:17px;font-weight:700;color:var(--text);margin-bottom:8px">ไม่มีสิทธิ์เข้าถึง</div>
+    <div style="font-size:13px;color:var(--text-sub);line-height:1.6;margin-bottom:24px">
+      เฉพาะ CEO / CO CEO / MANAGER เท่านั้นที่สามารถใช้งาน<br>Owner Panel ได้
+    </div>
+    <button onclick="closeAccessDeniedModal()" style="
+      width:100%;padding:12px;background:var(--red);border:none;border-radius:10px;
+      color:#fff;font-family:'Sarabun',sans-serif;font-size:14px;font-weight:600;
+      cursor:pointer;transition:opacity .15s;
+    " onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+      รับทราบ
+    </button>
+  </div>
+</div>
+
 <!-- ══ CUSTOMER NAME MODAL ══ -->
 <div id="customer-modal-overlay">
   <div class="customer-modal">
@@ -1995,7 +2020,10 @@ function clearBill() {
    ADMIN PANEL
 ══════════════════════════════════════ */
 function openAdmin()  {
-  if (!canViewAdmin()) return;
+  if (!canViewAdmin()) {
+    openAccessDeniedModal();
+    return;
+  }
   document.getElementById('admin-overlay').classList.add('open');
   updateAdminUserCard();
   applyAdminPermissions();
@@ -2003,6 +2031,12 @@ function openAdmin()  {
   renderVisitorSearch();
 }
 function closeAdmin() { document.getElementById('admin-overlay').classList.remove('open'); }
+function openAccessDeniedModal() {
+  document.getElementById('access-denied-overlay').style.display = 'flex';
+}
+function closeAccessDeniedModal() {
+  document.getElementById('access-denied-overlay').style.display = 'none';
+}
 function overlayClick(e) { if (e.target === document.getElementById('admin-overlay')) closeAdmin(); }
 
 function switchTab(name, btn) {
@@ -2661,7 +2695,7 @@ function applyPosPermissions() {
   document.body.classList.toggle('not-logged-in', notLoggedIn);
   const role = myRole();
   document.body.classList.toggle('visitor-mode', role === 'VISITOR');
-  document.body.classList.toggle('staff-no-admin', ['STAFF', 'PART TIME'].includes(role));
+  document.body.classList.toggle('staff-no-admin', myRole() === 'STAFF');
   applyHistoryTabVisibility();
   // ปุ่มเคลียร์ออเดอร์: เฉพาะ CEO / CO CEO / MANAGER / STAFF เท่านั้น
   const clearQueueBtn = document.getElementById('btn-clear-queue');
